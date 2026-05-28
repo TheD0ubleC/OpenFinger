@@ -1,0 +1,19 @@
+{
+  "source": "openfinger",
+  "applications": [
+    {
+      "app_key": "openfinger.controller_bridge",
+      "is_self_identified": true,
+      "launch_type": "binary",
+      "binary_path_windows": "openfinger_controller_bridge.exe",
+      "action_manifest_path": "actions.json",
+      "strings": {
+        "en_us": {
+          "name": "OpenFinger Controller Bridge"
+        }
+      }
+    }
+  ],
+  "version": "0.1.0",
+  "protocol_version": 2
+}

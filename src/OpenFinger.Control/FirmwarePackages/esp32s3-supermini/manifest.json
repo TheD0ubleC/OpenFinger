@@ -1,0 +1,33 @@
+{
+  "id": "ofc-esp32s3-bundled-2026.05.21",
+  "display_name": "ESP32-S3 SuperMini 内置固件",
+  "target": "esp32s3",
+  "version": "ofc-2026.05.21",
+  "report_rate_hz": 30,
+  "boot_hint": "如果设备没有自动进入下载模式，请按住 BOOT，轻按一次 RESET，再松开 BOOT。",
+  "default_profile": {
+    "name": "官方推荐预设",
+    "thumb_pin": 1,
+    "index_pin": 2,
+    "middle_pin": 3,
+    "ring_pin": 4,
+    "pinky_pin": 5,
+    "tracking_switch_pin": -1,
+    "tracking_switch_mode": "disabled",
+    "joystick_vrx_pin": -1,
+    "joystick_vry_pin": -1,
+    "joystick_sw_pin": -1
+  },
+  "bootloader": {
+    "file": "bootloader.bin",
+    "offset": "0x0000"
+  },
+  "partitions": {
+    "file": "partitions.bin",
+    "offset": "0x8000"
+  },
+  "firmware": {
+    "file": "firmware.bin",
+    "offset": "0x10000"
+  }
+}

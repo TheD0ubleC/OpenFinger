@@ -1,0 +1,131 @@
+<Window x:Class="OpenFinger.Control.JoystickDirectionCalibrationDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="摇杆方向校准"
+        Width="660"
+        Height="620"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{DynamicResource BrushPanel}"
+        FontFamily="Segoe UI"
+        FontSize="13"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType">
+    <Grid Margin="18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel>
+            <TextBlock x:Name="TitleText"
+                       FontSize="24"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource BrushText}"
+                       Text="摇杆方向校准" />
+            <TextBlock x:Name="SubtitleText"
+                       Margin="0,8,0,0"
+                       Foreground="{DynamicResource BrushSubText}"
+                       TextWrapping="Wrap"
+                       Text="系统会先记录中心点，再按顺序记录上、右、下、左四个方向，最后自动选择最贴近当前摇杆朝向的方向方案。" />
+        </StackPanel>
+
+        <Border Grid.Row="1"
+                Margin="0,14,0,0"
+                Padding="14"
+                BorderBrush="{DynamicResource BrushActiveBorder}"
+                BorderThickness="1"
+                CornerRadius="12"
+                Background="{DynamicResource BrushPrimarySoft}">
+            <StackPanel>
+                <TextBlock x:Name="StepText"
+                           FontSize="18"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource BrushText}"
+                           Text="准备开始" />
+                <TextBlock x:Name="InstructionText"
+                           Margin="0,8,0,0"
+                           Foreground="{DynamicResource BrushSubText}"
+                           TextWrapping="Wrap"
+                           Text="点击开始后，先松开摇杆，再按提示依次推到对应方向并保持。" />
+                <TextBlock x:Name="HintText"
+                           Margin="0,8,0,0"
+                           Foreground="{DynamicResource BrushSubText}"
+                           TextWrapping="Wrap"
+                           Text="如果某一步推得不够明显，系统会提示重新来一次。" />
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="2"
+                Margin="0,14,0,0"
+                CornerRadius="12"
+                BorderBrush="{DynamicResource BrushBorder}"
+                BorderThickness="1"
+                Background="{DynamicResource BrushPanel}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0"
+                           Margin="14,14,14,0"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource BrushText}"
+                           Text="记录结果" />
+
+                <DataGrid x:Name="ResultGrid"
+                          Grid.Row="1"
+                          Margin="10,12,10,10"
+                          AutoGenerateColumns="False"
+                          HeadersVisibility="Column"
+                          GridLinesVisibility="Horizontal"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          CanUserResizeRows="False"
+                          IsReadOnly="True"
+                          BorderThickness="0"
+                          RowHeaderWidth="0"
+                          Background="Transparent">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="步骤" Binding="{Binding DisplayName}" Width="120" />
+                        <DataGridTextColumn Header="采样值" Binding="{Binding SampleText}" Width="170" />
+                        <DataGridTextColumn Header="说明" Binding="{Binding Status}" Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+        <DockPanel Grid.Row="3" Margin="0,16,0,0" LastChildFill="False">
+            <TextBlock x:Name="FooterText"
+                       VerticalAlignment="Center"
+                       Foreground="{DynamicResource BrushSubText}"
+                       Text="尚未开始校准。"
+                       DockPanel.Dock="Left" />
+            <StackPanel DockPanel.Dock="Right"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right">
+                <Button x:Name="StartButton"
+                        Width="110"
+                        Height="38"
+                        Margin="0,0,10,0"
+                        Click="StartButton_Click"
+                        Background="{DynamicResource BrushPrimary}"
+                        Foreground="White"
+                        BorderBrush="{DynamicResource BrushPrimary}"
+                        Cursor="Hand"
+                        Content="开始" />
+                <Button Width="90"
+                        Height="38"
+                        IsCancel="True"
+                        Cursor="Hand"
+                        Content="取消" />
+            </StackPanel>
+        </DockPanel>
+    </Grid>
+</Window>

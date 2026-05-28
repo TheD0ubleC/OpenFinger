@@ -1,0 +1,14 @@
+global using System.Windows;
+global using System.Windows.Controls;
+global using OpenFinger.Control;
+global using Application = System.Windows.Application;
+global using Brush = System.Windows.Media.Brush;
+global using Brushes = System.Windows.Media.Brushes;
+global using Button = System.Windows.Controls.Button;
+global using ComboBox = System.Windows.Controls.ComboBox;
+global using MessageBox = System.Windows.MessageBox;
+global using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
+global using Point = System.Windows.Point;
+global using Registry = Microsoft.Win32.Registry;
+global using Size = System.Windows.Size;
+global using UserControl = System.Windows.Controls.UserControl;

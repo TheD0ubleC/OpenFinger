@@ -1,0 +1,161 @@
+<UserControl x:Class="OpenFinger.Control.Pages.HomePage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:OpenFinger.Control.Controls"
+             mc:Ignorable="d"
+             Background="{DynamicResource BrushBg}"
+             Style="{StaticResource PageTransitionStyle}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="40,36,40,36" MaxWidth="1040">
+            <controls:PageHeader Title="首页" Description="按顺序完成连接、刷写和校准。" />
+
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,24">
+                <StackPanel>
+                    <TextBlock Text="当前建议" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,16" />
+                    <DockPanel Margin="0,0,0,14">
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                            <Ellipse x:Name="NextActionDot" Width="8" Height="8" Fill="{DynamicResource BrushNeutralAccent}" Margin="0,0,8,0" />
+                            <TextBlock x:Name="NextActionTitleText"
+                                       Text="等待连接第一只设备"
+                                       Foreground="{DynamicResource BrushText}"
+                                       FontSize="22"
+                                       FontWeight="Bold" />
+                        </StackPanel>
+                    </DockPanel>
+                    <TextBlock x:Name="NextActionDescriptionText"
+                               Text="先到设备页确认设备，再通过 USB 写入配置。"
+                               Foreground="{DynamicResource BrushSubText}"
+                               FontSize="13.5"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,18" />
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="NextActionPrimaryButton"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Width="130"
+                                Margin="0,0,10,0"
+                                Content="前往设备"
+                                Click="OnNextPrimaryClick" />
+                        <Button x:Name="NextActionSecondaryButton"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="130"
+                                Content="查看诊断"
+                                Click="OnNextSecondaryClick" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Grid Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock Text="左手状态" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,14" />
+                        <TextBlock x:Name="LeftDetailText"
+                                   Text="未发现左手设备。"
+                                   Foreground="{DynamicResource BrushText}"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,14" />
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="92" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="连接" Foreground="{DynamicResource BrushSubText}" Margin="0,0,0,10" />
+                            <TextBlock x:Name="LeftConnectionText" Grid.Column="1" Foreground="{DynamicResource BrushText}" FontWeight="SemiBold" />
+                            <TextBlock Grid.Row="1" Text="固件" Foreground="{DynamicResource BrushSubText}" Margin="0,0,0,10" />
+                            <TextBlock x:Name="LeftFirmwareText" Grid.Row="1" Grid.Column="1" Foreground="{DynamicResource BrushText}" FontWeight="SemiBold" />
+                            <TextBlock Grid.Row="2" Text="校准" Foreground="{DynamicResource BrushSubText}" Margin="0,0,0,10" />
+                            <TextBlock x:Name="LeftCalibrationText" Grid.Row="2" Grid.Column="1" Foreground="{DynamicResource BrushText}" FontWeight="SemiBold" />
+                            <TextBlock Grid.Row="3" Text="使用状态" Foreground="{DynamicResource BrushSubText}" />
+                            <TextBlock x:Name="LeftUsageText" Grid.Row="3" Grid.Column="1" Foreground="{DynamicResource BrushText}" FontWeight="SemiBold" />
+                        </Grid>
+                        <Border x:Name="LeftMetaBorder"
+                                Background="{DynamicResource BrushInputReadonly}"
+                                CornerRadius="8"
+                                Padding="12,10"
+                                Margin="0,16,0,0">
+                            <TextBlock x:Name="LeftMetaText"
+                                       Text="等待设备接入。"
+                                       Foreground="{DynamicResource BrushSubText}"
+                                       FontSize="12.5"
+                                       TextWrapping="Wrap" />
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock Text="右手状态" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,14" />
+                        <TextBlock x:Name="RightDetailText"
+                                   Text="未发现右手设备。"
+                                   Foreground="{DynamicResource BrushText}"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,14" />
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="92" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="连接" Foreground="{DynamicResource BrushSubText}" Margin="0,0,0,10" />
+                            <TextBlock x:Name="RightConnectionText" Grid.Column="1" Foreground="{DynamicResource BrushText}" FontWeight="SemiBold" />
+                            <TextBlock Grid.Row="1" Text="固件" Foreground="{DynamicResource BrushSubText}" Margin="0,0,0,10" />
+                            <TextBlock x:Name="RightFirmwareText" Grid.Row="1" Grid.Column="1" Foreground="{DynamicResource BrushText}" FontWeight="SemiBold" />
+                            <TextBlock Grid.Row="2" Text="校准" Foreground="{DynamicResource BrushSubText}" Margin="0,0,0,10" />
+                            <TextBlock x:Name="RightCalibrationText" Grid.Row="2" Grid.Column="1" Foreground="{DynamicResource BrushText}" FontWeight="SemiBold" />
+                            <TextBlock Grid.Row="3" Text="使用状态" Foreground="{DynamicResource BrushSubText}" />
+                            <TextBlock x:Name="RightUsageText" Grid.Row="3" Grid.Column="1" Foreground="{DynamicResource BrushText}" FontWeight="SemiBold" />
+                        </Grid>
+                        <Border x:Name="RightMetaBorder"
+                                Background="{DynamicResource BrushInputReadonly}"
+                                CornerRadius="8"
+                                Padding="12,10"
+                                Margin="0,16,0,0">
+                            <TextBlock x:Name="RightMetaText"
+                                       Text="等待设备接入。"
+                                       Foreground="{DynamicResource BrushSubText}"
+                                       FontSize="12.5"
+                                       TextWrapping="Wrap" />
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel>
+                    <TextBlock Text="快捷入口" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,16" />
+                    <WrapPanel Margin="0,0,-10,-10">
+                        <Button Style="{StaticResource PrimaryButtonStyle}" Width="130" Margin="0,0,10,10" Content="设备连接" Click="OnOpenDevicesClick" />
+                        <Button Style="{StaticResource SecondaryButtonStyle}" Width="130" Margin="0,0,10,10" Content="进入刷写" Click="OnOpenFirmwareClick" />
+                        <Button Style="{StaticResource SecondaryButtonStyle}" Width="130" Margin="0,0,10,10" Content="校准与设置" Click="OnOpenCalibrationClick" />
+                        <Button Style="{StaticResource SecondaryButtonStyle}" Width="130" Margin="0,0,10,10" Content="状态" Click="OnOpenDiagnosticsClick" />
+                        <Button Style="{StaticResource SecondaryButtonStyle}" Width="130" Margin="0,0,10,10" Content="SteamVR" Click="OnOpenSteamVrClick" />
+                        <Button Style="{StaticResource SecondaryButtonStyle}" Width="130" Margin="0,0,10,10" Content="设置" Click="OnOpenSettingsClick" />
+                        <Button Style="{StaticResource SecondaryButtonStyle}" Width="130" Margin="0,0,10,10" Content="启动 SteamVR" Click="OnStartSteamVrClick" />
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

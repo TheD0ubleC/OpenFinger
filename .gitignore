@@ -1,0 +1,51 @@
+# Build outputs
+build/
+dist/
+out/
+bin/
+obj/
+**/bin/
+**/obj/
+*.exe
+*.dll
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.nupkg
+
+# Visual Studio / IDE
+.vs/
+**/.vs/
+*.suo
+*.user
+*.vcxproj.user
+.vscode/.browse.VC.db
+.vscode/ipch/
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+*.cmake
+!CMakeLists.txt
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# PlatformIO
+.pio/
+src/firmware/**/.pio/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs & temp
+*.log
+*.tmp
+*.bak

@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>Assets\OpenFinger.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.IO.Ports" Version="10.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\OpenFinger.png" />
+    <Resource Include="Assets\Bilibili.png" />
+    <Resource Include="Assets\GitHub.png" />
+    <Resource Include="Assets\VRChat.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="FirmwarePackages\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="FirmwareTools\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\build\Debug\openfinger_firmware_tool.exe"
+          Link="openfinger_firmware_tool.exe"
+          CopyToOutputDirectory="PreserveNewest"
+          Condition="Exists('..\..\build\Debug\openfinger_firmware_tool.exe')" />
+    <None Include="..\..\build\Release\openfinger_firmware_tool.exe"
+          Link="openfinger_firmware_tool.exe"
+          CopyToOutputDirectory="PreserveNewest"
+          Condition="Exists('..\..\build\Release\openfinger_firmware_tool.exe')" />
+  </ItemGroup>
+</Project>

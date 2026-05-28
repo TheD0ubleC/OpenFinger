@@ -1,0 +1,262 @@
+<Window x:Class="OpenFinger.Control.FirmwareSetupDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="准备刷写"
+        Width="640"
+        Height="620"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{DynamicResource BrushBg}"
+        FontFamily="Microsoft YaHei UI, Segoe UI, sans-serif"
+        FontSize="14"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        TextOptions.TextHintingMode="Fixed">
+    <Grid Margin="24" RenderOptions.ClearTypeHint="Enabled">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <StackPanel Margin="0,0,0,18">
+                    <TextBlock Text="准备开始固件刷写" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource BrushText}" />
+                    <TextBlock Margin="0,8,0,0"
+                               Text="先确认板型、手指输入、追踪开关和摇杆引脚，再继续刷写。"
+                               Foreground="{DynamicResource BrushSubText}"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+
+                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,18">
+                    <StackPanel>
+                        <TextBlock Text="本次刷写" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,14" />
+                        <TextBlock Text="板型" Style="{StaticResource InputLabelStyle}" />
+                        <TextBlock x:Name="TargetTextBlock"
+                                   Margin="0,0,0,12"
+                                   Foreground="{DynamicResource BrushText}"
+                                   FontWeight="SemiBold"
+                                   FontSize="15" />
+
+                        <TextBlock Text="固件" Style="{StaticResource InputLabelStyle}" />
+                        <TextBlock x:Name="PackageTextBlock"
+                                   Margin="0,0,0,12"
+                                   Foreground="{DynamicResource BrushText}"
+                                   FontWeight="SemiBold"
+                                   TextWrapping="Wrap"
+                                   FontSize="15" />
+
+                        <TextBlock Text="串口" Style="{StaticResource InputLabelStyle}" />
+                        <TextBlock x:Name="PortTextBlock"
+                                   Foreground="{DynamicResource BrushText}"
+                                   FontWeight="SemiBold"
+                                   FontSize="15" />
+                    </StackPanel>
+                </Border>
+
+                <Border Background="{DynamicResource BrushWarningBg}" BorderBrush="{DynamicResource BrushWarningBorder}" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,18">
+                    <TextBlock x:Name="BootHintTextBlock"
+                               Text="如果刷写失败，请先按住 BOOT，点一下 RESET，松开 BOOT 后再继续刷写。"
+                               Foreground="{DynamicResource BrushWarningText}"
+                               FontSize="13"
+                               TextWrapping="Wrap" />
+                </Border>
+
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="GPIO 与开关配置"
+                                       Style="{StaticResource SectionTitleStyle}"
+                                       VerticalAlignment="Center" />
+                            <Button Grid.Column="1"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    MinWidth="132"
+                                    Height="34"
+                                    Margin="16,0,0,0"
+                                    Padding="16,0"
+                                    Content="恢复推荐"
+                                    Click="OnResetDefaultsClick" />
+                        </Grid>
+
+                        <Border BorderBrush="{DynamicResource BrushInfoBorder}"
+                                BorderThickness="1"
+                                Background="{DynamicResource BrushPrimarySoft}"
+                                CornerRadius="10"
+                                Padding="12"
+                                Margin="0,0,0,14">
+                            <TextBlock x:Name="BoardAdcHintTextBlock"
+                                       Text="ESP32-C3 SuperMini：手指和摇杆轴 ADC 只支持 GPIO0~5；GPIO6 以上只能做开关类数字输入。"
+                                       Foreground="{DynamicResource BrushInfoText}"
+                                       FontSize="12.5"
+                                       TextWrapping="Wrap" />
+                        </Border>
+
+                        <TextBlock Text="手指输入"
+                                   Style="{StaticResource InputLabelStyle}"
+                                   Margin="0,0,0,10" />
+
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="108" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="14" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="输入引脚" Foreground="{DynamicResource BrushSubText}" FontSize="12" Margin="0,0,0,8" />
+                            <TextBlock Grid.Row="0" Grid.Column="3" Text="共享来源" Foreground="{DynamicResource BrushSubText}" FontSize="12" Margin="0,0,0,8" />
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="拇指" Style="{StaticResource InputLabelStyle}" VerticalAlignment="Center" />
+                            <ComboBox x:Name="ThumbComboBox" Grid.Row="1" Grid.Column="1" Style="{StaticResource SelectInputStyle}" Margin="0,0,0,10" />
+                            <ComboBox x:Name="ThumbShareComboBox" Grid.Row="1" Grid.Column="3" Style="{StaticResource SelectInputStyle}" Margin="0,0,0,10" />
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="食指" Style="{StaticResource InputLabelStyle}" VerticalAlignment="Center" />
+                            <ComboBox x:Name="IndexComboBox" Grid.Row="2" Grid.Column="1" Style="{StaticResource SelectInputStyle}" Margin="0,0,0,10" />
+                            <ComboBox x:Name="IndexShareComboBox" Grid.Row="2" Grid.Column="3" Style="{StaticResource SelectInputStyle}" Margin="0,0,0,10" />
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="中指" Style="{StaticResource InputLabelStyle}" VerticalAlignment="Center" />
+                            <ComboBox x:Name="MiddleComboBox" Grid.Row="3" Grid.Column="1" Style="{StaticResource SelectInputStyle}" Margin="0,0,0,10" />
+                            <ComboBox x:Name="MiddleShareComboBox" Grid.Row="3" Grid.Column="3" Style="{StaticResource SelectInputStyle}" Margin="0,0,0,10" />
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="无名指" Style="{StaticResource InputLabelStyle}" VerticalAlignment="Center" />
+                            <ComboBox x:Name="RingComboBox" Grid.Row="4" Grid.Column="1" Style="{StaticResource SelectInputStyle}" Margin="0,0,0,10" />
+                            <ComboBox x:Name="RingShareComboBox" Grid.Row="4" Grid.Column="3" Style="{StaticResource SelectInputStyle}" Margin="0,0,0,10" />
+
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="小指" Style="{StaticResource InputLabelStyle}" VerticalAlignment="Center" />
+                            <ComboBox x:Name="PinkyComboBox" Grid.Row="5" Grid.Column="1" Style="{StaticResource SelectInputStyle}" />
+                            <ComboBox x:Name="PinkyShareComboBox" Grid.Row="5" Grid.Column="3" Style="{StaticResource SelectInputStyle}" />
+                        </Grid>
+
+                        <TextBlock Text="如果两根手指共用一个传感器，只保留来源手指的输入引脚，另一根手指在“共享来源”里引用它。"
+                                   Foreground="{DynamicResource BrushSubText}"
+                                   FontSize="12"
+                                   Margin="0,0,0,14"
+                                   TextWrapping="Wrap" />
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="追踪开关 GPIO" Style="{StaticResource InputLabelStyle}" />
+                                <ComboBox x:Name="TrackingSwitchComboBox" Style="{StaticResource SelectInputStyle}" Margin="0,0,0,12" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="开关模式" Style="{StaticResource InputLabelStyle}" />
+                                <ComboBox x:Name="TrackingModeComboBox" Style="{StaticResource SelectInputStyle}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Border BorderBrush="{DynamicResource BrushBorder}"
+                                BorderThickness="1"
+                                Background="{DynamicResource BrushInputReadonly}"
+                                CornerRadius="10"
+                                Padding="12"
+                                Margin="0,14,0,0">
+                            <StackPanel>
+                                <TextBlock Text="摇杆引脚（可选）" Style="{StaticResource InputLabelStyle}" Margin="0,0,0,10" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="16" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="VRX ADC" Style="{StaticResource InputLabelStyle}" />
+                                        <ComboBox x:Name="JoystickVrxComboBox" Style="{StaticResource SelectInputStyle}" Margin="0,0,0,12" />
+                                        <TextBlock Text="VRY ADC" Style="{StaticResource InputLabelStyle}" />
+                                        <ComboBox x:Name="JoystickVryComboBox" Style="{StaticResource SelectInputStyle}" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="SW GPIO" Style="{StaticResource InputLabelStyle}" />
+                                        <ComboBox x:Name="JoystickSwComboBox" Style="{StaticResource SelectInputStyle}" Margin="0,0,0,8" />
+                                        <TextBlock Text="常见摇杆模块会输出 VRX、VRY、SW 三路信号；没有接摇杆时保持“不使用”即可。"
+                                                   Foreground="{DynamicResource BrushSubText}"
+                                                   FontSize="12.5"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border BorderBrush="{DynamicResource BrushBorder}"
+                                BorderThickness="1"
+                                Background="{DynamicResource BrushInputReadonly}"
+                                CornerRadius="10"
+                                Padding="12"
+                                Margin="0,14,0,0">
+                            <StackPanel>
+                                <TextBlock Text="电池检测（可选）" Style="{StaticResource InputLabelStyle}" Margin="0,0,0,10" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="16" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="电池 ADC" Style="{StaticResource InputLabelStyle}" />
+                                        <ComboBox x:Name="BatteryAdcComboBox" Style="{StaticResource SelectInputStyle}" Margin="0,0,0,8" />
+                                        <TextBlock Text="用于读取电池分压后的电压；没有接检测电路时保持“不使用电池检测”。"
+                                                   Foreground="{DynamicResource BrushSubText}"
+                                                   FontSize="12.5"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="充电检测 GPIO" Style="{StaticResource InputLabelStyle}" />
+                                        <ComboBox x:Name="BatteryChargeComboBox" Style="{StaticResource SelectInputStyle}" Margin="0,0,0,8" />
+                                        <TextBlock Text="如果充电模块有 CHRG / STAT 信号，可以接这里；没接也不影响电压和百分比显示。"
+                                                   Foreground="{DynamicResource BrushSubText}"
+                                                   FontSize="12.5"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border x:Name="ValidationBorder"
+                                Background="{DynamicResource BrushDangerBg}"
+                                BorderBrush="{DynamicResource BrushDangerBorder}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="12,10"
+                                Margin="0,14,0,0"
+                                Visibility="Collapsed">
+                            <TextBlock x:Name="ValidationTextBlock"
+                                       Foreground="{DynamicResource BrushDangerText}"
+                                       FontSize="13"
+                                       TextWrapping="Wrap" />
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+            <Button Style="{StaticResource SecondaryButtonStyle}" Width="96" Margin="0,0,10,0" Content="取消" Click="OnCancelClick" />
+            <Button x:Name="ConfirmButton" Style="{StaticResource PrimaryButtonStyle}" Width="140" Content="继续刷写" Click="OnConfirmClick" />
+        </StackPanel>
+    </Grid>
+</Window>

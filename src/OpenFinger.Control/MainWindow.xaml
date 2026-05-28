@@ -1,0 +1,163 @@
+<Window x:Class="OpenFinger.Control.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:pages="clr-namespace:OpenFinger.Control.Pages"
+        mc:Ignorable="d"
+        Title="OpenFinger"
+        Width="1280"
+        Height="820"
+        MinWidth="1080"
+        MinHeight="720"
+        Background="{DynamicResource BrushBg}"
+        FontFamily="Microsoft YaHei UI, Segoe UI, sans-serif"
+        FontSize="14"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        Icon="Assets/OpenFinger.png">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="228" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0"
+                Background="{DynamicResource BrushPanel}"
+                BorderBrush="{DynamicResource BrushBorder}"
+                BorderThickness="0,0,1,0"
+                Padding="18,24">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Border Style="{StaticResource CardBorderStyle}"
+        Width="190"
+        Height="58"
+        Padding="10">
+
+                    <Grid>
+                        <TextBlock FontSize="26"
+                   FontWeight="Bold"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"><Run Text="Open"
+                                                   Foreground="{DynamicResource BrushText}" /><Run Text="Finger"><Run.Foreground><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#FF8585" Offset="0" /><GradientStop Color="#F472B6" Offset="0.35" /><GradientStop Color="#C084FC" Offset="0.68" /><GradientStop Color="#635BFF" Offset="1" /></LinearGradientBrush></Run.Foreground></Run></TextBlock>
+                    </Grid>
+                </Border>
+
+
+                <StackPanel Grid.Row="1" Margin="0,12,0,0">
+                    <Button x:Name="HomeTabButton" Style="{StaticResource NavButtonActiveStyle}" Click="OnHomeTabClick" Content="首页" />
+                    <Button x:Name="DeviceTabButton" Style="{StaticResource NavButtonStyle}" Click="OnDeviceTabClick" Content="设备" />
+                    <Button x:Name="FirmwareTabButton" Style="{StaticResource NavButtonStyle}" Click="OnFirmwareTabClick" Content="固件刷写" />
+                    <Button x:Name="CalibrationTabButton" Style="{StaticResource NavButtonStyle}" Click="OnCalibrationTabClick" Content="校准与设置" />
+                    <Button x:Name="StatusTabButton" Style="{StaticResource NavButtonStyle}" Click="OnStatusTabClick" Content="状态" />
+                    <Button x:Name="DiagnosticsTabButton" Style="{StaticResource NavButtonStyle}" Click="OnDiagnosticsTabClick" Content="SteamVR" />
+                    <Button x:Name="SettingsTabButton" Style="{StaticResource NavButtonStyle}" Click="OnSettingsTabClick" Content="设置" />
+                    <Button x:Name="AboutTabButton" Style="{StaticResource NavButtonStyle}" Click="OnAboutTabClick" Content="关于" />
+                </StackPanel>
+
+                <Border Grid.Row="2"
+                        Background="{DynamicResource BrushPanelAlt}"
+                        BorderBrush="{DynamicResource BrushBorder}"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        Padding="12,10">
+                    <TextBlock Text="按首页流程完成连接、刷写和校准即可开始使用。"
+                               Foreground="{DynamicResource BrushText}"
+                               FontSize="12"
+                               TextWrapping="Wrap" />
+                </Border>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border x:Name="StatusBarBorder"
+                    Grid.Row="0"
+                    Background="{DynamicResource BrushPanel}"
+                    BorderBrush="{DynamicResource BrushBorder}"
+                    BorderThickness="0,0,0,1"
+                    Padding="22,14">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Ellipse x:Name="StatusReadyDot"
+                                 Width="8"
+                                 Height="8"
+                                 Fill="{DynamicResource BrushSubText}"
+                                 Margin="0,0,8,0"
+                                 VerticalAlignment="Center" />
+                        <TextBlock x:Name="StatusReadyText"
+                                   Text="等待连接第一只设备"
+                                   Foreground="{DynamicResource BrushText}"
+                                   FontSize="13"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,14,0" />
+                        <Border x:Name="CompactLeftBadgeBorder"
+                                Background="{DynamicResource BrushMutedPanel}"
+                                CornerRadius="6"
+                                Padding="8,4"
+                                Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="左手 "
+                                           Foreground="{DynamicResource BrushSubText}"
+                                           FontSize="11.5" />
+                                <TextBlock x:Name="CompactLeftStatusText"
+                                           Text="未就绪"
+                                           Foreground="{DynamicResource BrushSubText}"
+                                           FontSize="11.5"
+                                           FontWeight="SemiBold" />
+                            </StackPanel>
+                        </Border>
+                        <Border x:Name="CompactRightBadgeBorder"
+                                Background="{DynamicResource BrushMutedPanel}"
+                                CornerRadius="6"
+                                Padding="8,4">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="右手 "
+                                           Foreground="{DynamicResource BrushSubText}"
+                                           FontSize="11.5" />
+                                <TextBlock x:Name="CompactRightStatusText"
+                                           Text="未就绪"
+                                           Foreground="{DynamicResource BrushSubText}"
+                                           FontSize="11.5"
+                                           FontWeight="SemiBold" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <Button Grid.Column="1"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Content="状态"
+                            Width="84"
+                            Click="OnStatusTabClick" />
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="1">
+                <pages:HomePage x:Name="HomePageView" Visibility="Visible" />
+                <pages:DevicesPage x:Name="DevicesPageView" Visibility="Collapsed" />
+                <pages:FirmwarePage x:Name="FirmwarePageView" Visibility="Collapsed" />
+                <pages:CalibrationPage x:Name="CalibrationPageView" Visibility="Collapsed" />
+                <pages:StatusPage x:Name="StatusPageView" Visibility="Collapsed" />
+                <pages:LogPage x:Name="DiagnosticsPageView" Visibility="Collapsed" />
+                <pages:SettingsPage x:Name="SettingsPageView" Visibility="Collapsed" />
+                <pages:AboutPage x:Name="AboutPageView" Visibility="Collapsed" />
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

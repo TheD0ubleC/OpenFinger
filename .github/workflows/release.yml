@@ -1,0 +1,95 @@
+name: Draft Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag. Leave empty to use v<VERSION>.'
+        required: false
+        type: string
+      prerelease:
+        description: 'Mark the draft release as a pre-release.'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  draft-release:
+    name: Build and create draft GitHub Release
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build release package
+        shell: pwsh
+        run: |
+          python x.py package --config Release --archive-format zip
+          python x.py verify-package --config Release
+
+      - name: Resolve release metadata
+        id: meta
+        shell: pwsh
+        run: |
+          $version = (Get-Content VERSION -Raw).Trim()
+          $tag = '${{ inputs.tag_name }}'.Trim()
+          if (-not $tag) { $tag = "v$version" }
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "title=OpenFinger $version" >> $env:GITHUB_OUTPUT
+
+      - name: Create or update git tag
+        shell: pwsh
+        run: |
+          $tag = '${{ steps.meta.outputs.tag }}'
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if (git ls-remote --tags origin "refs/tags/$tag") {
+            Write-Host "Tag $tag already exists on origin."
+          } else {
+            git tag $tag $env:GITHUB_SHA
+            git push origin $tag
+          }
+
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ steps.meta.outputs.tag }}
+          RELEASE_TITLE: ${{ steps.meta.outputs.title }}
+          PRERELEASE: ${{ inputs.prerelease }}
+        shell: pwsh
+        run: |
+          $existing = gh release view $env:TAG_NAME --json isDraft --jq .isDraft 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            if ($existing -ne 'true') {
+              throw "Release $env:TAG_NAME already exists and is not a draft. Refusing to overwrite it."
+            }
+            gh release delete $env:TAG_NAME --yes --cleanup-tag=false
+          }
+
+          $args = @(
+            'release', 'create', $env:TAG_NAME,
+            'dist/OpenFinger-*-win-x64.zip',
+            '--draft',
+            '--title', $env:RELEASE_TITLE,
+            '--notes-file', 'dist/release-notes.md',
+            '--target', $env:GITHUB_SHA
+          )
+          if ($env:PRERELEASE -eq 'true') { $args += '--prerelease' }
+          gh @args

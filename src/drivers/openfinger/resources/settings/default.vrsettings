@@ -1,0 +1,9 @@
+{
+  "driver_openfinger": {
+    "enable": true,
+    "serial_number": "OpenFinger-DualHand-001",
+    "model_number": "OpenFinger Dual Hand",
+    "forward_controller_inputs": true,
+    "open_finger_test_window": false
+  }
+}

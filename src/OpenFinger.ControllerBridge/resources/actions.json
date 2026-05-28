@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "minimum_required_version": 1,
+  "default_bindings": [
+    {
+      "controller_type": "oculus_touch",
+      "binding_url": "bindings_oculus_touch.json"
+    }
+  ],
+  "actions": [
+    { "name": "/actions/legacy/in/Left_Pose", "type": "pose" },
+    { "name": "/actions/legacy/in/Right_Pose", "type": "pose" },
+    { "name": "/actions/legacy/out/Left_Haptic", "type": "vibration" },
+    { "name": "/actions/legacy/out/Right_Haptic", "type": "vibration" },
+    { "name": "/actions/legacy/in/Left_Axis1_Press", "type": "boolean" },
+    { "name": "/actions/legacy/in/Left_Axis1_Value", "type": "vector1" },
+    { "name": "/actions/legacy/in/Left_Axis1_Touch", "type": "boolean" },
+    { "name": "/actions/legacy/in/Left_Axis0_Press", "type": "boolean" },
+    { "name": "/actions/legacy/in/Left_Axis0_Value", "type": "vector2" },
+    { "name": "/actions/legacy/in/Left_Axis0_Touch", "type": "boolean" },
+    { "name": "/actions/legacy/in/Left_Axis2_Press", "type": "boolean" },
+    { "name": "/actions/legacy/in/Left_Axis2_Value1", "type": "vector1" },
+    { "name": "/actions/legacy/in/Left_Axis2_Touch", "type": "boolean" },
+    { "name": "/actions/legacy/in/Left_A_Press", "type": "boolean" },
+    { "name": "/actions/legacy/in/Left_A_Touch", "type": "boolean" },
+    { "name": "/actions/legacy/in/Left_ApplicationMenu_Press", "type": "boolean" },
+    { "name": "/actions/legacy/in/Left_ApplicationMenu_Touch", "type": "boolean" },
+    { "name": "/actions/legacy/in/Left_Grip_Press", "type": "boolean" },
+    { "name": "/actions/legacy/in/Left_Grip_Touch", "type": "boolean" },
+    { "name": "/actions/legacy/in/Right_Axis1_Press", "type": "boolean" },
+    { "name": "/actions/legacy/in/Right_Axis1_Value", "type": "vector1" },
+    { "name": "/actions/legacy/in/Right_Axis1_Touch", "type": "boolean" },
+    { "name": "/actions/legacy/in/Right_Axis0_Press", "type": "boolean" },
+    { "name": "/actions/legacy/in/Right_Axis0_Value", "type": "vector2" },
+    { "name": "/actions/legacy/in/Right_Axis0_Touch", "type": "boolean" },
+    { "name": "/actions/legacy/in/Right_Axis2_Press", "type": "boolean" },
+    { "name": "/actions/legacy/in/Right_Axis2_Value1", "type": "vector1" },
+    { "name": "/actions/legacy/in/Right_Axis2_Touch", "type": "boolean" },
+    { "name": "/actions/legacy/in/Right_A_Press", "type": "boolean" },
+    { "name": "/actions/legacy/in/Right_A_Touch", "type": "boolean" },
+    { "name": "/actions/legacy/in/Right_ApplicationMenu_Press", "type": "boolean" },
+    { "name": "/actions/legacy/in/Right_ApplicationMenu_Touch", "type": "boolean" },
+    { "name": "/actions/legacy/in/Right_Grip_Press", "type": "boolean" },
+    { "name": "/actions/legacy/in/Right_Grip_Touch", "type": "boolean" },
+
+    { "name": "/actions/left/in/triggervalue", "type": "vector1" },
+    { "name": "/actions/left/in/triggerclick", "type": "boolean" },
+    { "name": "/actions/left/in/triggertouch", "type": "boolean" },
+    { "name": "/actions/left/in/gripvalue", "type": "vector1" },
+    { "name": "/actions/left/in/gripclick", "type": "boolean" },
+    { "name": "/actions/left/in/griptouch", "type": "boolean" },
+    { "name": "/actions/left/in/joystick", "type": "vector2" },
+    { "name": "/actions/left/in/joystickclick", "type": "boolean" },
+    { "name": "/actions/left/in/joysticktouch", "type": "boolean" },
+    { "name": "/actions/left/in/primaryclick", "type": "boolean" },
+    { "name": "/actions/left/in/primarytouch", "type": "boolean" },
+    { "name": "/actions/left/in/secondaryclick", "type": "boolean" },
+    { "name": "/actions/left/in/secondarytouch", "type": "boolean" },
+    { "name": "/actions/left/in/systemclick", "type": "boolean" },
+    { "name": "/actions/left/in/systemtouch", "type": "boolean" },
+
+    { "name": "/actions/right/in/triggervalue", "type": "vector1" },
+    { "name": "/actions/right/in/triggerclick", "type": "boolean" },
+    { "name": "/actions/right/in/triggertouch", "type": "boolean" },
+    { "name": "/actions/right/in/gripvalue", "type": "vector1" },
+    { "name": "/actions/right/in/gripclick", "type": "boolean" },
+    { "name": "/actions/right/in/griptouch", "type": "boolean" },
+    { "name": "/actions/right/in/joystick", "type": "vector2" },
+    { "name": "/actions/right/in/joystickclick", "type": "boolean" },
+    { "name": "/actions/right/in/joysticktouch", "type": "boolean" },
+    { "name": "/actions/right/in/primaryclick", "type": "boolean" },
+    { "name": "/actions/right/in/primarytouch", "type": "boolean" },
+    { "name": "/actions/right/in/secondaryclick", "type": "boolean" },
+    { "name": "/actions/right/in/secondarytouch", "type": "boolean" },
+    { "name": "/actions/right/in/systemclick", "type": "boolean" },
+    { "name": "/actions/right/in/systemtouch", "type": "boolean" }
+  ],
+  "action_sets": [
+    { "name": "/actions/legacy", "usage": "leftright" },
+    { "name": "/actions/left", "usage": "single" },
+    { "name": "/actions/right", "usage": "single" }
+  ],
+  "localization": [
+    {
+      "language_tag": "en_US",
+      "/actions/legacy": "Legacy",
+      "/actions/left": "Left Hand",
+      "/actions/right": "Right Hand"
+    }
+  ]
+}

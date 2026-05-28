@@ -1,0 +1,151 @@
+<UserControl x:Class="OpenFinger.Control.Pages.SettingsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:OpenFinger.Control.Controls"
+             mc:Ignorable="d"
+             Background="{DynamicResource BrushBg}"
+             Style="{StaticResource PageTransitionStyle}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="40,36,40,36" MaxWidth="980">
+            <controls:PageHeader Title="设置" Description="设置本客户端的窗口、托盘、启动、通知和默认打开方式。" />
+
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="窗口与托盘" Style="{StaticResource SectionTitleStyle}" />
+
+                    <TextBlock Text="关闭按钮行为" Style="{StaticResource InputLabelStyle}" />
+                    <ComboBox x:Name="CloseActionComboBox"
+                              Style="{StaticResource SelectInputStyle}"
+                              DisplayMemberPath="Label"
+                              SelectedValuePath="Value"
+                              SelectionChanged="OnCloseActionChanged" />
+
+                    <TextBlock Text="托盘图标显示方式" Style="{StaticResource InputLabelStyle}" Margin="0,12,0,6" />
+                    <ComboBox x:Name="TrayVisibilityComboBox"
+                              Style="{StaticResource SelectInputStyle}"
+                              DisplayMemberPath="Label"
+                              SelectedValuePath="Value"
+                              SelectionChanged="OnTrayVisibilityChanged" />
+
+                    <CheckBox x:Name="ReduceLoadWhenHiddenCheckBox"
+                              Style="{StaticResource AppCheckBoxStyle}"
+                              Margin="0,14,0,0"
+                              Content="隐藏到托盘后降低界面刷新负载"
+                              Checked="OnReduceLoadChanged"
+                              Unchecked="OnReduceLoadChanged" />
+                    <CheckBox x:Name="RememberBoundsCheckBox"
+                              Style="{StaticResource AppCheckBoxStyle}"
+                              Margin="0,10,0,0"
+                              Content="记住窗口大小和位置"
+                              Checked="OnRememberBoundsChanged"
+                              Unchecked="OnRememberBoundsChanged" />
+
+                    <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                        <Button Style="{StaticResource SecondaryButtonStyle}"
+                                Width="136"
+                                Content="重新启用关闭提示"
+                                Click="OnResetClosePromptClick" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="启动与打开方式" Style="{StaticResource SectionTitleStyle}" />
+
+                    <CheckBox x:Name="EnableWindowsStartupCheckBox"
+                              Style="{StaticResource AppCheckBoxStyle}"
+                              Margin="0,0,0,10"
+                              Content="Windows 开机时自动启动 OpenFinger"
+                              Checked="OnEnableWindowsStartupChanged"
+                              Unchecked="OnEnableWindowsStartupChanged" />
+                    <CheckBox x:Name="StartHiddenOnWindowsStartupCheckBox"
+                              Style="{StaticResource AppCheckBoxStyle}"
+                              Margin="0,0,0,14"
+                              Content="通过开机自启启动时直接进入托盘"
+                              Checked="OnStartHiddenOnWindowsStartupChanged"
+                              Unchecked="OnStartHiddenOnWindowsStartupChanged" />
+
+                    <TextBlock Text="启动默认页面" Style="{StaticResource InputLabelStyle}" />
+                    <ComboBox x:Name="LaunchPageComboBox"
+                              Style="{StaticResource SelectInputStyle}"
+                              DisplayMemberPath="Label"
+                              SelectedValuePath="Value"
+                              SelectionChanged="OnLaunchPageChanged" />
+
+                    <CheckBox x:Name="RememberLastPageCheckBox"
+                              Style="{StaticResource AppCheckBoxStyle}"
+                              Margin="0,14,0,0"
+                              Content="下次启动时记住上次停留的页面"
+                              Checked="OnRememberLastPageChanged"
+                              Unchecked="OnRememberLastPageChanged" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="提示与通知" Style="{StaticResource SectionTitleStyle}" />
+
+                    <CheckBox x:Name="EnableTrayNotificationsCheckBox"
+                              Style="{StaticResource AppCheckBoxStyle}"
+                              Margin="0,0,0,10"
+                              Content="允许托盘提示"
+                              Checked="OnEnableTrayNotificationsChanged"
+                              Unchecked="OnEnableTrayNotificationsChanged" />
+                    <CheckBox x:Name="DeviceNotificationsCheckBox"
+                              Style="{StaticResource AppCheckBoxStyle}"
+                              Margin="0,0,0,10"
+                              Content="设备连接和在线状态变化时提示"
+                              Checked="OnDeviceNotificationsChanged"
+                              Unchecked="OnDeviceNotificationsChanged" />
+                    <CheckBox x:Name="FlashNotificationsCheckBox"
+                              Style="{StaticResource AppCheckBoxStyle}"
+                              Margin="0,0,0,10"
+                              Content="刷写完成或失败时提示"
+                              Checked="OnFlashNotificationsChanged"
+                              Unchecked="OnFlashNotificationsChanged" />
+                    <CheckBox x:Name="DriverNotificationsCheckBox"
+                              Style="{StaticResource AppCheckBoxStyle}"
+                              Content="驱动安装、移除和更新结果提示"
+                              Checked="OnDriverNotificationsChanged"
+                              Unchecked="OnDriverNotificationsChanged" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="界面" Style="{StaticResource SectionTitleStyle}" />
+
+                    <TextBlock Text="主题" Style="{StaticResource InputLabelStyle}" />
+                    <ComboBox x:Name="ThemeModeComboBox"
+                              Style="{StaticResource SelectInputStyle}"
+                              DisplayMemberPath="Label"
+                              SelectedValuePath="Value"
+                              SelectionChanged="OnThemeModeChanged" />
+
+                    <CheckBox x:Name="ShowAdvancedCheckBox"
+                              Style="{StaticResource AppCheckBoxStyle}"
+                              Margin="0,14,0,0"
+                              Content="默认开启高级模式"
+                              Checked="OnShowAdvancedChanged"
+                              Unchecked="OnShowAdvancedChanged" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel>
+                    <TextBlock Text="本地数据" Style="{StaticResource SectionTitleStyle}" />
+                    <controls:LabeledReadonlyField x:Name="ConfigPathField" Label="配置文件" Value="-" />
+                    <StackPanel Orientation="Horizontal">
+                        <Button Style="{StaticResource SecondaryButtonStyle}"
+                                Width="132"
+                                Content="打开配置目录"
+                                Click="OnOpenConfigFolderClick" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

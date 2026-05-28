@@ -1,0 +1,186 @@
+{
+  "jsonid": "input_profile",
+  "controller_type": "knuckles",
+  "device_class": "TrackedDeviceClass_Controller",
+  "resource_root": "openfinger",
+  "driver_name": "openfinger",
+  "hand_priority": 10000,
+  "input_bindingui_mode": "controller_handed",
+  "should_show_binding_errors": true,
+  "input_source": {
+    "/input/system/click": {
+      "type": "button",
+      "binding_image_point": [39, 31],
+      "order": 1
+    },
+    "/input/system/touch": {
+      "type": "button",
+      "binding_image_point": [39, 31],
+      "order": 2
+    },
+    "/input/a/click": {
+      "type": "button",
+      "binding_image_point": [73, 48],
+      "order": 3
+    },
+    "/input/a/touch": {
+      "type": "button",
+      "binding_image_point": [73, 48],
+      "order": 4
+    },
+    "/input/b/click": {
+      "type": "button",
+      "binding_image_point": [80, 31],
+      "order": 5
+    },
+    "/input/b/touch": {
+      "type": "button",
+      "binding_image_point": [80, 31],
+      "order": 6
+    },
+    "/input/x/click": {
+      "type": "button",
+      "binding_image_point": [27, 48],
+      "order": 7
+    },
+    "/input/x/touch": {
+      "type": "button",
+      "binding_image_point": [27, 48],
+      "order": 8
+    },
+    "/input/y/click": {
+      "type": "button",
+      "binding_image_point": [20, 31],
+      "order": 9
+    },
+    "/input/y/touch": {
+      "type": "button",
+      "binding_image_point": [20, 31],
+      "order": 10
+    },
+    "/input/trigger/value": {
+      "type": "trigger",
+      "binding_image_point": [90, 72],
+      "order": 11
+    },
+    "/input/trigger/click": {
+      "type": "button",
+      "binding_image_point": [90, 72],
+      "order": 12
+    },
+    "/input/trigger/touch": {
+      "type": "button",
+      "binding_image_point": [90, 72],
+      "order": 13
+    },
+    "/input/grip/value": {
+      "type": "trigger",
+      "binding_image_point": [12, 76],
+      "order": 14
+    },
+    "/input/grip/force": {
+      "type": "trigger",
+      "binding_image_point": [12, 76],
+      "order": 15
+    },
+    "/input/grip/click": {
+      "type": "button",
+      "binding_image_point": [12, 76],
+      "order": 16
+    },
+    "/input/grip/touch": {
+      "type": "button",
+      "binding_image_point": [12, 76],
+      "order": 17
+    },
+    "/input/joystick/x": {
+      "type": "joystick",
+      "binding_image_point": [52, 42],
+      "order": 18
+    },
+    "/input/joystick/y": {
+      "type": "joystick",
+      "binding_image_point": [52, 42],
+      "order": 19
+    },
+    "/input/joystick/click": {
+      "type": "button",
+      "binding_image_point": [52, 42],
+      "order": 20
+    },
+    "/input/joystick/touch": {
+      "type": "button",
+      "binding_image_point": [52, 42],
+      "order": 21
+    },
+    "/input/finger/index": {
+      "type": "trigger",
+      "visibility": "InputValueVisibility_AvailableButHidden",
+      "binding_image_point": [56, 86],
+      "order": 100
+    },
+    "/input/finger/middle": {
+      "type": "trigger",
+      "visibility": "InputValueVisibility_AvailableButHidden",
+      "binding_image_point": [56, 86],
+      "order": 101
+    },
+    "/input/finger/ring": {
+      "type": "trigger",
+      "visibility": "InputValueVisibility_AvailableButHidden",
+      "binding_image_point": [56, 86],
+      "order": 102
+    },
+    "/input/finger/pinky": {
+      "type": "trigger",
+      "visibility": "InputValueVisibility_AvailableButHidden",
+      "binding_image_point": [56, 86],
+      "order": 103
+    },
+    "/input/skeleton/right": {
+      "type": "skeleton",
+      "skeleton": "/skeleton/hand/right",
+      "side": "right",
+      "binding_image_point": [5, 35]
+    },
+    "/input/skeleton/left": {
+      "type": "skeleton",
+      "skeleton": "/skeleton/hand/left",
+      "side": "left",
+      "binding_image_point": [5, 35]
+    },
+    "/pose/raw": {
+      "type": "pose",
+      "binding_image_point": [52, 60]
+    },
+    "/pose/base": {
+      "type": "pose",
+      "binding_image_point": [52, 62]
+    },
+    "/pose/handgrip": {
+      "type": "pose",
+      "binding_image_point": [52, 64]
+    },
+    "/pose/grip": {
+      "type": "pose",
+      "binding_image_point": [52, 66]
+    },
+    "/pose/tip": {
+      "type": "pose",
+      "binding_image_point": [52, 68]
+    },
+    "/pose/openxr_aim": {
+      "type": "pose",
+      "binding_image_point": [52, 70]
+    },
+    "/pose/openxr_grip": {
+      "type": "pose",
+      "binding_image_point": [52, 72]
+    },
+    "/output/haptic": {
+      "type": "vibration",
+      "binding_image_point": [52, 84]
+    }
+  },
+  "default_bindings": []
+}

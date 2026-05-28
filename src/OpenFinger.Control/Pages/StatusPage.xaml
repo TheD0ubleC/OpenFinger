@@ -1,0 +1,104 @@
+<UserControl x:Class="OpenFinger.Control.Pages.StatusPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:OpenFinger.Control.Controls"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             Background="{DynamicResource BrushBg}"
+             Style="{StaticResource PageTransitionStyle}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="40,36,40,36" MaxWidth="1040">
+            <Grid Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <controls:PageHeader Title="状态" Description="这里只看当前状态。高级模式会影响刷写页和 SteamVR 页里的详细内容。" Margin="0" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="高级模式"
+                               Margin="0,0,10,0"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource BrushSubText}" />
+                    <ToggleButton x:Name="AdvancedModeToggle"
+                                  Width="52"
+                                  Height="26"
+                                  Checked="OnAdvancedModeChanged"
+                                  Unchecked="OnAdvancedModeChanged">
+                        <ToggleButton.Template>
+                            <ControlTemplate TargetType="ToggleButton">
+                                <Grid>
+                                    <Border x:Name="Bg" CornerRadius="13" Background="{DynamicResource BrushTrack}" />
+                                    <Ellipse x:Name="Knob" Width="20" Height="20" Fill="White" HorizontalAlignment="Left" Margin="3,0,3,0" />
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsChecked" Value="True">
+                                        <Setter TargetName="Bg" Property="Background" Value="{DynamicResource BrushPrimary}" />
+                                        <Setter TargetName="Knob" Property="HorizontalAlignment" Value="Right" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </ToggleButton.Template>
+                    </ToggleButton>
+                </StackPanel>
+            </Grid>
+
+            <Grid Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border x:Name="KitStatusBorder" Grid.Column="0" Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock Text="OpenFingerKit" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,12" />
+                        <TextBlock x:Name="KitStatusText" Text="等待检测" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource BrushText}" />
+                        <TextBlock x:Name="KitDetailText" Margin="0,10,0,0" Foreground="{DynamicResource BrushSubText}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <Border x:Name="SteamVrStatusBorder" Grid.Column="2" Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock Text="SteamVR" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,12" />
+                        <TextBlock x:Name="SteamVrStatusText" Text="等待检测" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource BrushText}" />
+                        <TextBlock x:Name="SteamVrDetailText" Margin="0,10,0,0" Foreground="{DynamicResource BrushSubText}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <Border x:Name="DeviceCommStatusBorder" Grid.Column="4" Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock Text="设备通讯" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,12" />
+                        <TextBlock x:Name="DeviceCommStatusText" Text="等待检测" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource BrushText}" />
+                        <TextBlock x:Name="DeviceCommDetailText" Margin="0,10,0,0" Foreground="{DynamicResource BrushSubText}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,24">
+                <StackPanel>
+                    <TextBlock Text="常用操作" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,16" />
+                    <WrapPanel Margin="0,0,-10,-10">
+                        <Button Style="{StaticResource PrimaryButtonStyle}" Width="130" Margin="0,0,10,10" Content="刷新检测" Click="OnRefreshClick" />
+                        <Button Style="{StaticResource SecondaryButtonStyle}" Width="130" Margin="0,0,10,10" Content="启动 SteamVR" Click="OnStartSteamVrClick" />
+                        <Button Style="{StaticResource SecondaryButtonStyle}" Width="130" Margin="0,0,10,10" Content="重启 SteamVR" Click="OnRestartSteamVrClick" />
+                        <Button Style="{StaticResource SecondaryButtonStyle}" Width="130" Margin="0,0,10,10" Content="修正配置" Click="OnRepairConfigClick" />
+                        <Button Style="{StaticResource SecondaryButtonStyle}" Width="130" Margin="0,0,10,10" Content="打开配置" Click="OnOpenConfigClick" />
+                        <Button Style="{StaticResource SecondaryButtonStyle}" Width="130" Margin="0,0,10,10" Content="清空日志" Click="OnClearLogClick" />
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel>
+                    <TextBlock Text="说明" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,12" />
+                    <TextBlock Text="如果需要安装驱动、更新驱动或移除驱动，请切到左侧的 SteamVR 页面。"
+                               Foreground="{DynamicResource BrushSubText}"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

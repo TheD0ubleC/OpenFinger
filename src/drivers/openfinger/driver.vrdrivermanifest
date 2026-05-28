@@ -1,0 +1,9 @@
+{
+  "alwaysActivate": true,
+  "name": "openfinger",
+  "directory": "",
+  "resourceOnly": false,
+  "hmd_presence": [],
+  "version": "0.1.0",
+  "protocol_version": 2
+}

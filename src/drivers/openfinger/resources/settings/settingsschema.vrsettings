@@ -1,0 +1,22 @@
+[
+  {
+    "title": "OpenFinger",
+    "show_without_hmd": true,
+    "values": [
+      {
+        "name": "/settings/driver_openfinger/forward_controller_inputs",
+        "control": "toggle",
+        "label": "Forward Source Controller Input",
+        "on_label": "Enabled",
+        "off_label": "Disabled"
+      },
+      {
+        "name": "/settings/driver_openfinger/open_finger_test_window",
+        "control": "toggle",
+        "label": "Open Finger Test Window",
+        "on_label": "Open",
+        "off_label": "Idle"
+      }
+    ]
+  }
+]

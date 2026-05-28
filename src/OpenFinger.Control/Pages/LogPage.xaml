@@ -1,0 +1,90 @@
+<UserControl x:Class="OpenFinger.Control.Pages.LogPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:OpenFinger.Control.Controls"
+             mc:Ignorable="d"
+             Background="{DynamicResource BrushBg}"
+             Style="{StaticResource PageTransitionStyle}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="40,36,40,36" MaxWidth="1040">
+            <controls:PageHeader Title="SteamVR" Description="管理 SteamVR 运行时、驱动安装与更新，需要时再展开高级详情。" Margin="0,0,0,24" />
+
+            <Grid Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border x:Name="SteamVrStatusBorder" Grid.Column="0" Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock Text="SteamVR" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,12" />
+                        <TextBlock x:Name="SteamVrStatusText" Text="等待检测" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource BrushText}" />
+                        <TextBlock x:Name="SteamVrDetailText" Margin="0,10,0,0" Foreground="{DynamicResource BrushSubText}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <Border x:Name="DriverStatusBorder" Grid.Column="2" Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock Text="SteamVR 驱动" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,12" />
+                        <TextBlock x:Name="DriverStatusText" Text="等待检测" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource BrushText}" />
+                        <TextBlock x:Name="DriverDetailText" Margin="0,10,0,0" Foreground="{DynamicResource BrushSubText}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,24">
+                <StackPanel>
+                    <TextBlock Text="驱动操作" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,16" />
+                    <WrapPanel Margin="0,0,-10,-10">
+                        <Button x:Name="UpdateDriverButton" Style="{StaticResource PrimaryButtonStyle}" Width="130" Margin="0,0,10,10" Content="安装驱动" Click="OnUpdateDriverClick" />
+                        <Button x:Name="RemoveDriverButton" Style="{StaticResource SecondaryButtonStyle}" Width="130" Margin="0,0,10,10" Content="移除驱动" Click="OnRemoveDriverClick" />
+                        <Button Style="{StaticResource SecondaryButtonStyle}" Width="130" Margin="0,0,10,10" Content="重启 SteamVR" Click="OnRestartSteamVrClick" />
+                    </WrapPanel>
+                    <TextBlock Text="这里只处理 OpenFinger 的 SteamVR 驱动安装、移除和生效所需的重启。其他操作请回状态页。"
+                               Margin="0,12,0,0"
+                               Foreground="{DynamicResource BrushSubText}"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <StackPanel x:Name="AdvancedPanel" Visibility="Collapsed">
+                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,20">
+                    <StackPanel>
+                        <TextBlock Text="刷写与运行摘要" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,12" />
+                        <TextBox x:Name="FriendlyLogTextBox"
+                                 Background="{DynamicResource BrushInputReadonly}"
+                                 BorderBrush="{DynamicResource BrushBorder}"
+                                 BorderThickness="1"
+                                 Foreground="{DynamicResource BrushText}"
+                                 IsReadOnly="True"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 MinHeight="140"
+                                 VerticalScrollBarVisibility="Auto"
+                                 FontSize="12.5" />
+                    </StackPanel>
+                </Border>
+
+                <Border BorderBrush="{DynamicResource BrushBorder}" BorderThickness="1" CornerRadius="10" Background="{DynamicResource BrushCodeBg}" Padding="16,14">
+                    <StackPanel>
+                        <TextBlock Text="原始日志" Foreground="White" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12" />
+                        <TextBox x:Name="RawLogTextBox"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 Foreground="{DynamicResource BrushCodeText}"
+                                 IsReadOnly="True"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto"
+                                 MinHeight="260"
+                                 FontFamily="Consolas"
+                                 FontSize="12.5" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

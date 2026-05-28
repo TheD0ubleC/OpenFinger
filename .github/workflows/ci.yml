@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, dev, release/**]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-build:
+    name: Windows build and package verification
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Configure CMake
+        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+
+      - name: Build native components
+        run: cmake --build build --config Release --parallel
+
+      - name: Build GUI
+        run: dotnet build src/OpenFinger.Control/OpenFinger.Control.csproj -c Release
+
+      - name: Package
+        run: python x.py package --config Release --skip-build --archive-format zip
+
+      - name: Verify package layout
+        run: python x.py verify-package --config Release
+
+      - name: Upload CI package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenFinger-ci-win-x64
+          path: dist/OpenFinger-*-win-x64.zip
+          if-no-files-found: error
