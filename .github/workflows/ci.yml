@@ -38,10 +38,7 @@ jobs:
         run: dotnet build src/OpenFinger.Control/OpenFinger.Control.csproj -c Release
 
       - name: Download espflash runtime
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: .github/scripts/download-espflash.ps1
+        run: python .github/scripts/download_espflash.py
 
       - name: Package
         run: python x.py package --config Release --skip-build --archive-format zip
