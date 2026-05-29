@@ -20,6 +20,7 @@ VERSION_FILE = ROOT / "VERSION"
 PROTOCOL_VERSION_FILE = ROOT / "PROTOCOL_VERSION"
 GUI_PROJECT = ROOT / "src" / "OpenFinger.Control" / "OpenFinger.Control.csproj"
 GUI_DIR = GUI_PROJECT.parent
+FIRMWARE_TOOLS_DIR = GUI_DIR / "FirmwareTools"
 DRIVER_ROOT = ROOT / "src" / "drivers" / "openfinger"
 FIRMWARE_TARGETS: dict[str, tuple[Path, str]] = {
     "esp32c3": (ROOT / "src" / "firmware" / "esp32c3", "esp32-c3-dev-module"),
@@ -277,6 +278,54 @@ def copy_file_if_exists(src: Path, dst: Path, required: bool = False) -> bool:
     return True
 
 
+
+def espflash_candidates() -> list[Path]:
+    candidates: list[Path] = [
+        FIRMWARE_TOOLS_DIR / "espflash.exe",
+        FIRMWARE_TOOLS_DIR / "espflash" / "espflash.exe",
+        ROOT / "tools" / "espflash.exe",
+        ROOT / ".tools" / "espflash.exe",
+        ROOT / ".codex_temp" / "cargo-root" / "bin" / "espflash.exe",
+    ]
+
+    if user_profile := os.environ.get("USERPROFILE"):
+        candidates.append(Path(user_profile) / ".cargo" / "bin" / "espflash.exe")
+
+    for name in ("espflash.exe", "espflash"):
+        if resolved := shutil.which(name):
+            candidates.append(Path(resolved))
+
+    deduped: list[Path] = []
+    seen: set[str] = set()
+    for candidate in candidates:
+        key = str(candidate).lower() if os.name == "nt" else str(candidate)
+        if key not in seen:
+            seen.add(key)
+            deduped.append(candidate)
+    return deduped
+
+
+def copy_bundled_espflash(out_root: Path) -> None:
+    dst = out_root / "FirmwareTools" / "espflash.exe"
+    if dst.exists() and dst.stat().st_size > 0:
+        print(f"[x.py] bundled espflash: {dst.relative_to(out_root)}")
+        return
+
+    for candidate in espflash_candidates():
+        if candidate.exists() and candidate.is_file() and candidate.stat().st_size > 0:
+            copy_file_if_exists(candidate, dst, required=True)
+            print(f"[x.py] bundled espflash from {candidate}")
+            return
+
+    searched = "\n".join(f"  - {path}" for path in espflash_candidates())
+    raise FileNotFoundError(
+        "missing required firmware flashing runtime: espflash.exe\n"
+        "Download espflash-x86_64-pc-windows-msvc.zip from esp-rs/espflash and "
+        "place espflash.exe in src/OpenFinger.Control/FirmwareTools before packaging.\n"
+        "Searched:\n" + searched
+    )
+
+
 def publish_gui(config: str, out_dir: Path, runtime: str) -> None:
     remove_tree(out_dir)
     run_process([
@@ -306,6 +355,7 @@ Package layout:
   openfinger_adc_monitor.exe  ADC/debug helper.
   openfinger_firmware_tool.exe
                               Firmware flashing helper used by the application.
+  FirmwareTools\\espflash.exe Bundled ESP32 firmware flasher used by Control.
   FirmwarePackages\\          Bundled firmware files used by the GUI.
   Driver\\                    SteamVR driver package.
   docs\\                      Project documentation.
@@ -380,6 +430,7 @@ def command_package(args: argparse.Namespace) -> None:
     # the package root. This keeps the GitHub asset usable after one extract:
     # users can open the folder and run OpenFinger.Control.exe immediately.
     publish_gui(args.config, out_root, runtime)
+    copy_bundled_espflash(out_root)
 
     native_dir = BUILD / args.config
     for name in PACKAGE_NATIVE_TOOLS:
@@ -438,6 +489,7 @@ def command_verify_package(args: argparse.Namespace) -> None:
         out_root / "openfinger_controller_bridge.exe",
         out_root / "openfinger_adc_monitor.exe",
         out_root / "openfinger_firmware_tool.exe",
+        out_root / "FirmwareTools" / "espflash.exe",
         out_root / "Driver" / "driver.vrdrivermanifest",
         out_root / "README.txt",
     ]
