@@ -1,0 +1,331 @@
+<UserControl x:Class="OpenFinger.Control.Pages.GesturePage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:OpenFinger.Control.Controls"
+             mc:Ignorable="d"
+             Background="{DynamicResource BrushBg}"
+             Style="{StaticResource PageTransitionStyle}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="40,36,40,36" MaxWidth="1080">
+            <controls:PageHeader Title="手势"
+                                 Description="为每只手设置拇指捏合动作。先选按键，再校准整只手。"
+                                 Margin="0,0,0,24" />
+
+            <StackPanel>
+                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,20">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="左手" Style="{StaticResource SectionTitleStyle}" Margin="0" />
+                                <TextBlock x:Name="LeftSummaryText"
+                                           Margin="0,8,0,0"
+                                           Foreground="{DynamicResource BrushSubText}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock x:Name="LeftLiveSummaryText"
+                                           Margin="0,6,0,0"
+                                           FontSize="13"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource BrushInfoText}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1"
+                                        Orientation="Horizontal"
+                                        VerticalAlignment="Top">
+                                <CheckBox x:Name="LeftEnabledCheckBox"
+                                          Style="{StaticResource AppCheckBoxStyle}"
+                                          Tag="left"
+                                          Content="启用"
+                                          Margin="0,0,12,0"
+                                          Checked="OnHandEnabledChanged"
+                                          Unchecked="OnHandEnabledChanged" />
+                                <Button Style="{StaticResource SecondaryButtonStyle}"
+                                        Content="校准整只手"
+                                        Tag="left"
+                                        Click="OnCalibrateHandClick" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Border BorderBrush="{DynamicResource BrushBorder}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Background="{DynamicResource BrushPanelAlt}">
+                            <StackPanel>
+                                <Grid Margin="16,14,16,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="170" />
+                                        <ColumnDefinition Width="236" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="捏合组合" Foreground="{DynamicResource BrushSubText}" FontSize="12.5" />
+                                    <TextBlock Grid.Column="1" Text="映射到" Foreground="{DynamicResource BrushSubText}" FontSize="12.5" />
+                                    <TextBlock Grid.Column="2"
+                                               Margin="24,0,0,0"
+                                               Text="实时状态"
+                                               Foreground="{DynamicResource BrushSubText}"
+                                               FontSize="12.5" />
+                                </Grid>
+
+                                <ItemsControl x:Name="LeftItemsControl">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="{DynamicResource BrushBorder}" BorderThickness="0,1,0,0" Padding="16,12">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="170" />
+                                                        <ColumnDefinition Width="236" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <TextBlock VerticalAlignment="Center"
+                                                               Text="{Binding ComboLabel}"
+                                                               FontSize="14"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource BrushText}" />
+
+                                                    <ComboBox Grid.Column="1"
+                                                              Style="{StaticResource SelectInputStyle}"
+                                                              ItemsSource="{Binding ButtonOptions}"
+                                                              DisplayMemberPath="Label"
+                                                              SelectedValuePath="Value"
+                                                              SelectedValue="{Binding ButtonValue}"
+                                                              SelectionChanged="OnMappedButtonChanged" />
+
+                                                    <StackPanel Grid.Column="2" Margin="24,0,0,0" VerticalAlignment="Center">
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <Ellipse Width="8"
+                                                                     Height="8"
+                                                                     Margin="0,0,8,0"
+                                                                     VerticalAlignment="Center">
+                                                                <Ellipse.Style>
+                                                                    <Style TargetType="Ellipse">
+                                                                        <Setter Property="Fill" Value="{DynamicResource BrushSubText}" />
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding StateKind}" Value="active">
+                                                                                <Setter Property="Fill" Value="{DynamicResource BrushSuccessText}" />
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding StateKind}" Value="ready">
+                                                                                <Setter Property="Fill" Value="{DynamicResource BrushInfoText}" />
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding StateKind}" Value="needs_calibration">
+                                                                                <Setter Property="Fill" Value="{DynamicResource BrushWarningText}" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Ellipse.Style>
+                                                            </Ellipse>
+                                                            <TextBlock Text="{Binding StateLabel}"
+                                                                       FontSize="13"
+                                                                       FontWeight="SemiBold"
+                                                                       TextWrapping="Wrap"
+                                                                       VerticalAlignment="Center">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Setter Property="Foreground" Value="{DynamicResource BrushSubText}" />
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding StateKind}" Value="active">
+                                                                                <Setter Property="Foreground" Value="{DynamicResource BrushSuccessText}" />
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding StateKind}" Value="ready">
+                                                                                <Setter Property="Foreground" Value="{DynamicResource BrushInfoText}" />
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding StateKind}" Value="needs_calibration">
+                                                                                <Setter Property="Foreground" Value="{DynamicResource BrushWarningText}" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding AdvancedText}"
+                                                                   Margin="0,4,0,0"
+                                                                   Foreground="{DynamicResource BrushSubText}"
+                                                                   FontSize="12.5"
+                                                                   TextWrapping="Wrap">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                    <Style.Triggers>
+                                                                        <Trigger Property="Text" Value="">
+                                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                                        </Trigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="右手" Style="{StaticResource SectionTitleStyle}" Margin="0" />
+                                <TextBlock x:Name="RightSummaryText"
+                                           Margin="0,8,0,0"
+                                           Foreground="{DynamicResource BrushSubText}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock x:Name="RightLiveSummaryText"
+                                           Margin="0,6,0,0"
+                                           FontSize="13"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource BrushInfoText}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1"
+                                        Orientation="Horizontal"
+                                        VerticalAlignment="Top">
+                                <CheckBox x:Name="RightEnabledCheckBox"
+                                          Style="{StaticResource AppCheckBoxStyle}"
+                                          Tag="right"
+                                          Content="启用"
+                                          Margin="0,0,12,0"
+                                          Checked="OnHandEnabledChanged"
+                                          Unchecked="OnHandEnabledChanged" />
+                                <Button Style="{StaticResource SecondaryButtonStyle}"
+                                        Content="校准整只手"
+                                        Tag="right"
+                                        Click="OnCalibrateHandClick" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Border BorderBrush="{DynamicResource BrushBorder}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Background="{DynamicResource BrushPanelAlt}">
+                            <StackPanel>
+                                <Grid Margin="16,14,16,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="170" />
+                                        <ColumnDefinition Width="236" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="捏合组合" Foreground="{DynamicResource BrushSubText}" FontSize="12.5" />
+                                    <TextBlock Grid.Column="1" Text="映射到" Foreground="{DynamicResource BrushSubText}" FontSize="12.5" />
+                                    <TextBlock Grid.Column="2"
+                                               Margin="24,0,0,0"
+                                               Text="实时状态"
+                                               Foreground="{DynamicResource BrushSubText}"
+                                               FontSize="12.5" />
+                                </Grid>
+
+                                <ItemsControl x:Name="RightItemsControl">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="{DynamicResource BrushBorder}" BorderThickness="0,1,0,0" Padding="16,12">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="170" />
+                                                        <ColumnDefinition Width="236" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <TextBlock VerticalAlignment="Center"
+                                                               Text="{Binding ComboLabel}"
+                                                               FontSize="14"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource BrushText}" />
+
+                                                    <ComboBox Grid.Column="1"
+                                                              Style="{StaticResource SelectInputStyle}"
+                                                              ItemsSource="{Binding ButtonOptions}"
+                                                              DisplayMemberPath="Label"
+                                                              SelectedValuePath="Value"
+                                                              SelectedValue="{Binding ButtonValue}"
+                                                              SelectionChanged="OnMappedButtonChanged" />
+
+                                                    <StackPanel Grid.Column="2" Margin="24,0,0,0" VerticalAlignment="Center">
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <Ellipse Width="8"
+                                                                     Height="8"
+                                                                     Margin="0,0,8,0"
+                                                                     VerticalAlignment="Center">
+                                                                <Ellipse.Style>
+                                                                    <Style TargetType="Ellipse">
+                                                                        <Setter Property="Fill" Value="{DynamicResource BrushSubText}" />
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding StateKind}" Value="active">
+                                                                                <Setter Property="Fill" Value="{DynamicResource BrushSuccessText}" />
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding StateKind}" Value="ready">
+                                                                                <Setter Property="Fill" Value="{DynamicResource BrushInfoText}" />
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding StateKind}" Value="needs_calibration">
+                                                                                <Setter Property="Fill" Value="{DynamicResource BrushWarningText}" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Ellipse.Style>
+                                                            </Ellipse>
+                                                            <TextBlock Text="{Binding StateLabel}"
+                                                                       FontSize="13"
+                                                                       FontWeight="SemiBold"
+                                                                       TextWrapping="Wrap"
+                                                                       VerticalAlignment="Center">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Setter Property="Foreground" Value="{DynamicResource BrushSubText}" />
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding StateKind}" Value="active">
+                                                                                <Setter Property="Foreground" Value="{DynamicResource BrushSuccessText}" />
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding StateKind}" Value="ready">
+                                                                                <Setter Property="Foreground" Value="{DynamicResource BrushInfoText}" />
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding StateKind}" Value="needs_calibration">
+                                                                                <Setter Property="Foreground" Value="{DynamicResource BrushWarningText}" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding AdvancedText}"
+                                                                   Margin="0,4,0,0"
+                                                                   Foreground="{DynamicResource BrushSubText}"
+                                                                   FontSize="12.5"
+                                                                   TextWrapping="Wrap">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                    <Style.Triggers>
+                                                                        <Trigger Property="Text" Value="">
+                                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                                        </Trigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

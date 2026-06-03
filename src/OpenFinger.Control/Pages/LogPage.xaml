@@ -50,6 +50,44 @@
                 </StackPanel>
             </Border>
 
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,24">
+                <StackPanel>
+                    <TextBlock Text="控制器设置" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,12" />
+                    <TextBlock Text="这里只改 SteamVR 里的控制器外观预设，不会改按钮逻辑。修改后需要重启 SteamVR。"
+                               Foreground="{DynamicResource BrushSubText}"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,16" />
+
+                    <Border BorderBrush="{DynamicResource BrushBorder}" BorderThickness="1" CornerRadius="12" Background="{DynamicResource BrushPanelAlt}" Padding="16,14">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="170" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,18,0">
+                                <TextBlock Text="控制器预设" Style="{StaticResource InputLabelStyle}" />
+                                <ComboBox x:Name="ControllerStyleComboBox"
+                                          Style="{StaticResource SelectInputStyle}"
+                                          Margin="0,8,0,0"
+                                          DisplayMemberPath="Label"
+                                          SelectedValuePath="Value"
+                                          SelectionChanged="OnControllerStylePresetChanged" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock x:Name="ControllerStyleLabelTextBlock"
+                                           FontSize="15"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource BrushText}" />
+                                <TextBlock x:Name="ControllerStylePreviewTextBlock"
+                                           Margin="0,8,0,0"
+                                           Foreground="{DynamicResource BrushSubText}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </Border>
+
             <StackPanel x:Name="AdvancedPanel" Visibility="Collapsed">
                 <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,20">
                     <StackPanel>

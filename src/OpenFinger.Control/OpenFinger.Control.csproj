@@ -7,26 +7,50 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>Assets\OpenFinger.ico</ApplicationIcon>
+    <Version>0.1.0</Version>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <FileVersion>0.1.0.0</FileVersion>
+    <InformationalVersion>0.1.0</InformationalVersion>
+    <BundledFirmwareToolCandidate Condition="Exists('$(MSBuildProjectDirectory)\..\..\build\Release\openfinger_firmware_tool.exe')">$(MSBuildProjectDirectory)\..\..\build\Release\openfinger_firmware_tool.exe</BundledFirmwareToolCandidate>
+    <BundledFirmwareToolCandidate Condition="'$(BundledFirmwareToolCandidate)' == '' and Exists('$(MSBuildProjectDirectory)\..\..\build\Debug\openfinger_firmware_tool.exe')">$(MSBuildProjectDirectory)\..\..\build\Debug\openfinger_firmware_tool.exe</BundledFirmwareToolCandidate>
+    <BundledEspflashCandidate Condition="Exists('$(MSBuildProjectDirectory)\FirmwareTools\espflash.exe')">$(MSBuildProjectDirectory)\FirmwareTools\espflash.exe</BundledEspflashCandidate>
+    <BundledEspflashCandidate Condition="'$(BundledEspflashCandidate)' == '' and Exists('$(MSBuildProjectDirectory)\FirmwareTools\espflash\espflash.exe')">$(MSBuildProjectDirectory)\FirmwareTools\espflash\espflash.exe</BundledEspflashCandidate>
+    <BundledEspflashCandidate Condition="'$(BundledEspflashCandidate)' == '' and Exists('$(MSBuildProjectDirectory)\..\..\.codex_temp\cargo-root\bin\espflash.exe')">$(MSBuildProjectDirectory)\..\..\.codex_temp\cargo-root\bin\espflash.exe</BundledEspflashCandidate>
+    <BundledEspflashCandidate Condition="'$(BundledEspflashCandidate)' == '' and Exists('$(USERPROFILE)\.cargo\bin\espflash.exe')">$(USERPROFILE)\.cargo\bin\espflash.exe</BundledEspflashCandidate>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.IO.Ports" Version="10.0.0" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets\OpenFinger.png" />
+    <Resource Include="Assets\OpenFingerTitle.png" />
     <Resource Include="Assets\Bilibili.png" />
     <Resource Include="Assets\GitHub.png" />
     <Resource Include="Assets\VRChat.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="FirmwarePackages\**\*" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="FirmwareTools\**\*" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\build\Debug\openfinger_firmware_tool.exe"
+    <None Include="FirmwarePackages\**\*"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
+    <None Include="FirmwareTools\**\*"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
+    <None Include="$(BundledFirmwareToolCandidate)"
           Link="openfinger_firmware_tool.exe"
           CopyToOutputDirectory="PreserveNewest"
-          Condition="Exists('..\..\build\Debug\openfinger_firmware_tool.exe')" />
-    <None Include="..\..\build\Release\openfinger_firmware_tool.exe"
-          Link="openfinger_firmware_tool.exe"
+          CopyToPublishDirectory="PreserveNewest"
+          Condition="'$(BundledFirmwareToolCandidate)' != ''" />
+    <None Include="$(BundledEspflashCandidate)"
+          Link="FirmwareTools\espflash.exe"
           CopyToOutputDirectory="PreserveNewest"
-          Condition="Exists('..\..\build\Release\openfinger_firmware_tool.exe')" />
+          CopyToPublishDirectory="PreserveNewest"
+          Condition="'$(BundledEspflashCandidate)' != '' and !Exists('$(MSBuildProjectDirectory)\FirmwareTools\espflash.exe')" />
   </ItemGroup>
+
+  <Target Name="ValidateBundledFlashingAssets" BeforeTargets="Publish">
+    <Error Condition="'$(BundledFirmwareToolCandidate)' == ''"
+           Text="发布 OpenFinger.Control 之前必须先构建 openfinger_firmware_tool.exe；当前没有找到 build\\Release 或 build\\Debug 下的 openfinger_firmware_tool.exe。" />
+    <Error Condition="'$(BundledEspflashCandidate)' == ''"
+           Text="发布 OpenFinger.Control 之前必须提供 espflash.exe。可以放到 src\\OpenFinger.Control\\FirmwareTools\\espflash.exe，或者确保本机存在 .codex_temp\\cargo-root\\bin\\espflash.exe / %USERPROFILE%\\.cargo\\bin\\espflash.exe。" />
+  </Target>
 </Project>

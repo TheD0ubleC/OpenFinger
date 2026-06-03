@@ -36,6 +36,11 @@ public partial class MainWindow : Window
         NavigateToStatus();
     }
 
+    private void OnGestureTabClick(object sender, RoutedEventArgs e)
+    {
+        NavigateToGestures();
+    }
+
     private void OnDiagnosticsTabClick(object sender, RoutedEventArgs e)
     {
         NavigateToDiagnostics();
@@ -76,6 +81,11 @@ public partial class MainWindow : Window
         ShowPage(CalibrationPageView, CalibrationTabButton);
     }
 
+    public void NavigateToGestures()
+    {
+        ShowPage(GesturePageView, GestureTabButton);
+    }
+
     public void NavigateToStatus()
     {
         ShowPage(StatusPageView, StatusTabButton);
@@ -102,6 +112,7 @@ public partial class MainWindow : Window
         DevicesPageView.Visibility = Visibility.Collapsed;
         FirmwarePageView.Visibility = Visibility.Collapsed;
         CalibrationPageView.Visibility = Visibility.Collapsed;
+        GesturePageView.Visibility = Visibility.Collapsed;
         StatusPageView.Visibility = Visibility.Collapsed;
         DiagnosticsPageView.Visibility = Visibility.Collapsed;
         SettingsPageView.Visibility = Visibility.Collapsed;
@@ -119,6 +130,7 @@ public partial class MainWindow : Window
         DeviceTabButton.Style = (Style)FindResource("NavButtonStyle");
         FirmwareTabButton.Style = (Style)FindResource("NavButtonStyle");
         CalibrationTabButton.Style = (Style)FindResource("NavButtonStyle");
+        GestureTabButton.Style = (Style)FindResource("NavButtonStyle");
         StatusTabButton.Style = (Style)FindResource("NavButtonStyle");
         DiagnosticsTabButton.Style = (Style)FindResource("NavButtonStyle");
         SettingsTabButton.Style = (Style)FindResource("NavButtonStyle");

@@ -63,6 +63,7 @@ bool RuntimeFrameReceiver::Start(const AppConfig& config, std::string* out_error
     have_fallback_frame_ = false;
     fallback_seq_ = 0;
     last_runtime_packet_at_ = {};
+    latest_frame_received_at_ = {};
 
     WSADATA data;
     const int startup_result = WSAStartup(MAKEWORD(2, 2), &data);
@@ -128,19 +129,6 @@ bool RuntimeFrameReceiver::Start(const AppConfig& config, std::string* out_error
         latest_frame_.right.side = HandSide::Right;
     }
 
-    std::string raw_error;
-    if (config.runtime.device_udp_port > 0
-        && config.runtime.device_udp_port != config.runtime.local_runtime_udp_port
-        && raw_receiver_.Start(static_cast<std::uint16_t>(config.runtime.device_udp_port), &raw_error))
-    {
-        raw_fallback_enabled_ = true;
-    }
-    else if (!raw_error.empty())
-    {
-        std::lock_guard<std::mutex> stats_lock(stats_mutex_);
-        last_error_ = "raw ADC fallback disabled: " + raw_error;
-    }
-
     port_ = static_cast<std::uint16_t>(config.runtime.local_runtime_udp_port);
     socket_ = static_cast<std::uintptr_t>(udp_socket);
     running_ = true;
@@ -191,6 +179,17 @@ bool RuntimeFrameReceiver::CopyLatestFrame(RuntimeFrame* out_frame) const
 
     *out_frame = latest_frame_;
     return true;
+}
+
+bool RuntimeFrameReceiver::IsLatestFrameFresh(std::chrono::milliseconds max_age) const
+{
+    std::lock_guard<std::mutex> lock(frame_mutex_);
+    if (latest_frame_.seq == 0 || latest_frame_received_at_.time_since_epoch().count() == 0)
+    {
+        return false;
+    }
+
+    return (std::chrono::steady_clock::now() - latest_frame_received_at_) <= max_age;
 }
 
 RuntimeFrameReceiverStats RuntimeFrameReceiver::GetStats() const
@@ -284,6 +283,7 @@ void RuntimeFrameReceiver::ProcessRawFallback(std::chrono::steady_clock::time_po
     {
         std::lock_guard<std::mutex> lock(frame_mutex_);
         latest_frame_ = frame;
+        latest_frame_received_at_ = now;
     }
 
     have_fallback_frame_ = true;
@@ -354,9 +354,10 @@ void RuntimeFrameReceiver::Run()
         {
             std::lock_guard<std::mutex> lock(frame_mutex_);
             latest_frame_ = parsed;
+            latest_frame_received_at_ = std::chrono::steady_clock::now();
         }
 
-        last_runtime_packet_at_ = std::chrono::steady_clock::now();
+        last_runtime_packet_at_ = latest_frame_received_at_;
         ProcessRawFallback(last_runtime_packet_at_);
     }
 }

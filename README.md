@@ -69,7 +69,7 @@ ESP32 firmware
 openfinger_service.exe
   设备发现、数据过滤、运行时状态
         |
-        | OFRUNTIME UDP 127.0.0.1:39003
+        | OFRUNTIME UDP 127.0.0.1:39003 (OpenFinger.Control)
         v
 SteamVR driver_openfinger.dll
   提交左右手 skeleton
@@ -117,6 +117,7 @@ Windows x64 是主开发环境。需要 CMake、Ninja、.NET SDK、可用的 C++
 python x.py build --config Debug
 python x.py run --config Debug
 python x.py package --config Release
+python x.py package --config Release --archive-format zip --distribution all --runtime-mode all
 ```
 
 单独构建组件：

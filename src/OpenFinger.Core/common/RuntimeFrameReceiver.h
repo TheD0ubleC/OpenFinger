@@ -33,6 +33,7 @@ public:
 
     bool IsRunning() const;
     bool CopyLatestFrame(RuntimeFrame* out_frame) const;
+    bool IsLatestFrameFresh(std::chrono::milliseconds max_age) const;
     RuntimeFrameReceiverStats GetStats() const;
     std::string GetLastError() const;
 
@@ -54,6 +55,7 @@ private:
     bool have_fallback_frame_ = false;
     std::uint64_t fallback_seq_ = 0;
     std::chrono::steady_clock::time_point last_runtime_packet_at_ {};
+    std::chrono::steady_clock::time_point latest_frame_received_at_ {};
 
     mutable std::mutex frame_mutex_;
     RuntimeFrame latest_frame_;

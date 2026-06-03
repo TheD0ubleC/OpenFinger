@@ -105,6 +105,16 @@ struct SteamVrConfig
 {
     int update_hz = 90;
     bool stale_return_to_zero = true;
+    struct ControllerStyleConfig
+    {
+        std::string style_id = "knuckles";
+        std::string display_name;
+        std::string controller_type_override;
+        std::string render_model_override;
+    };
+
+    ControllerStyleConfig left_style;
+    ControllerStyleConfig right_style;
 };
 
 struct ControllerBridgeConfig

@@ -191,6 +191,7 @@ public partial class MainWindow
     {
         DataContext = _vm;
         _config = _configStore.Load();
+        LoadControllerStylesFromSharedConfig();
         ThemeManager.ApplyThemeMode(_config.Ui.ThemeMode);
 
         foreach (var finger in FingerNames)
@@ -242,6 +243,8 @@ public partial class MainWindow
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
+        _ = BeginStartupIntroAsync();
+
         if (StopServiceIfRunning(out var stopMessage) && !string.IsNullOrWhiteSpace(stopMessage))
         {
             AppendLog(stopMessage);
@@ -255,6 +258,10 @@ public partial class MainWindow
         _portAgeTimer.Start();
         _runtimeUiTimer.Start();
         CompleteShellStartup();
+        if (_config.Ui.Updates.CheckOnStartup)
+        {
+            _ = CheckForUpdatesAsync(userInitiated: false);
+        }
     }
 
     private void MainWindow_Closed(object? sender, EventArgs e)
@@ -2776,6 +2783,11 @@ public partial class MainWindow
             CalibrationPageView.RefreshFingerCards(_vm.LeftFingers, _vm.RightFingers, _vm.LeftJoystick, _vm.RightJoystick);
         }
 
+        if (allowVisiblePageUpdates && GesturePageView.Visibility == Visibility.Visible)
+        {
+            GesturePageView.UpdateDashboard(BuildGestureDashboardState());
+        }
+
         if (allowVisiblePageUpdates && StatusPageView.Visibility == Visibility.Visible)
         {
             StatusPageView.UpdateStatus(BuildDiagnosticsDashboardState(leftDevice, rightDevice));
@@ -3006,7 +3018,8 @@ public partial class MainWindow
             DriverDetail = BuildSteamVrDriverDetail(_steamVrDriverSnapshot),
             FriendlyLog = BuildFriendlyLogText(),
             RawLog = BuildCombinedLogText(),
-            ShowAdvanced = _vm.ShowAdvanced
+            ShowAdvanced = _vm.ShowAdvanced,
+            ControllerStyle = BuildControllerStyleDashboardState()
         };
     }
 
@@ -4422,30 +4435,18 @@ public partial class MainWindow
             return;
         }
 
-        List<double> CollectBends(string side, RuntimeSideCache cache)
-        {
-            var bends = new List<double>(5);
-            var hand = string.Equals(side, "left", StringComparison.OrdinalIgnoreCase) ? _config.Hands.Left : _config.Hands.Right;
-            for (var i = 0; i < FingerNames.Length; i++)
-            {
-                var fingerName = FingerNames[i];
-                var enabled = !hand.Fingers.TryGetValue(fingerName, out var fingerConfig) || fingerConfig.Enabled;
-                bends.Add(enabled ? cache.FilteredBends[i] : 0.0);
-            }
-
-            return bends;
-        }
-
         var leftCache = SnapshotRuntimeCache("left");
         var rightCache = SnapshotRuntimeCache("right");
         var leftPresent = ResolveRuntimeHandPresent("left", leftCache);
         var rightPresent = ResolveRuntimeHandPresent("right", rightCache);
         var leftStale = ResolveRuntimeHandStale(leftCache);
         var rightStale = ResolveRuntimeHandStale(rightCache);
-        var leftBends = CollectBends("left", leftCache);
-        var rightBends = CollectBends("right", rightCache);
+        var leftBends = BuildHandBends("left", leftCache);
+        var rightBends = BuildHandBends("right", rightCache);
         var leftJoystickState = BuildJoystickRuntimeState("left", leftCache);
         var rightJoystickState = BuildJoystickRuntimeState("right", rightCache);
+        var leftGestureButtons = EvaluateGestureButtons("left", leftPresent, leftStale, leftBends);
+        var rightGestureButtons = EvaluateGestureButtons("right", rightPresent, rightStale, rightBends);
 
         _runtimePublisher?.UpdatePoseOffset("left", _config.PoseOffsets.Left);
         _runtimePublisher?.UpdatePoseOffset("right", _config.PoseOffsets.Right);
@@ -4456,10 +4457,14 @@ public partial class MainWindow
         _runtimePublisher?.UpdateHand("right", rightPresent, rightStale, rightBends);
         _runtimePublisher?.UpdateJoystick("left", leftJoystickState.Available, leftJoystickState.AxisX, leftJoystickState.AxisY, leftJoystickState.Pressed, leftJoystickState.Touched, leftJoystickState.AxisMode, leftJoystickState.ClickAction);
         _runtimePublisher?.UpdateJoystick("right", rightJoystickState.Available, rightJoystickState.AxisX, rightJoystickState.AxisY, rightJoystickState.Pressed, rightJoystickState.Touched, rightJoystickState.AxisMode, rightJoystickState.ClickAction);
+        _runtimePublisher?.UpdateVirtualButtons("left", leftGestureButtons.TriggerClick, leftGestureButtons.GripClick, leftGestureButtons.PrimaryClick, leftGestureButtons.SecondaryClick, leftGestureButtons.SystemClick);
+        _runtimePublisher?.UpdateVirtualButtons("right", rightGestureButtons.TriggerClick, rightGestureButtons.GripClick, rightGestureButtons.PrimaryClick, rightGestureButtons.SecondaryClick, rightGestureButtons.SystemClick);
         _fingerTestPublisher?.UpdateHand("left", leftPresent, leftStale, leftBends);
         _fingerTestPublisher?.UpdateHand("right", rightPresent, rightStale, rightBends);
         _fingerTestPublisher?.UpdateJoystick("left", leftJoystickState.Available, leftJoystickState.AxisX, leftJoystickState.AxisY, leftJoystickState.Pressed, leftJoystickState.Touched, leftJoystickState.AxisMode, leftJoystickState.ClickAction);
         _fingerTestPublisher?.UpdateJoystick("right", rightJoystickState.Available, rightJoystickState.AxisX, rightJoystickState.AxisY, rightJoystickState.Pressed, rightJoystickState.Touched, rightJoystickState.AxisMode, rightJoystickState.ClickAction);
+        _fingerTestPublisher?.UpdateVirtualButtons("left", leftGestureButtons.TriggerClick, leftGestureButtons.GripClick, leftGestureButtons.PrimaryClick, leftGestureButtons.SecondaryClick, leftGestureButtons.SystemClick);
+        _fingerTestPublisher?.UpdateVirtualButtons("right", rightGestureButtons.TriggerClick, rightGestureButtons.GripClick, rightGestureButtons.PrimaryClick, rightGestureButtons.SecondaryClick, rightGestureButtons.SystemClick);
     }
 
     private bool ResolveRuntimeHandPresent(string side, RuntimeSideCache cache)

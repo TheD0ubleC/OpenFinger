@@ -37,11 +37,15 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Setup Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+
       - name: Build release package
         shell: pwsh
         run: |
-          python x.py package --config Release --archive-format zip
-          python x.py verify-package --config Release
+          python x.py package --config Release --archive-format zip --distribution all --runtime-mode all
+          python x.py verify-package --config Release --archive-format zip --distribution all --runtime-mode all
 
       - name: Resolve release metadata
         id: meta
@@ -83,13 +87,21 @@ jobs:
             gh release delete $env:TAG_NAME --yes --cleanup-tag=false
           }
 
+          $assets = Get-ChildItem dist -File | Where-Object {
+            $_.Name -match '^OpenFinger-.*-win-x64-(dotnet|self-contained)\.zip$' -or
+            $_.Name -match '^OpenFinger-.*-win-x64-(dotnet|self-contained)\.zip\.sha256$' -or
+            $_.Name -match '^OpenFingerSetup-.*-win-x64-(dotnet|self-contained)\.exe$' -or
+            $_.Name -match '^OpenFingerSetup-.*-win-x64-(dotnet|self-contained)\.exe\.sha256$' -or
+            $_.Name -match '^OpenFinger-.*-checksums\.sha256$'
+          } | Sort-Object Name
+
           $args = @(
             'release', 'create', $env:TAG_NAME,
-            'dist/OpenFinger-*-win-x64.zip',
             '--draft',
             '--title', $env:RELEASE_TITLE,
             '--notes-file', 'dist/release-notes.md',
             '--target', $env:GITHUB_SHA
           )
+          $args += $assets.FullName
           if ($env:PRERELEASE -eq 'true') { $args += '--prerelease' }
           gh @args

@@ -52,6 +52,14 @@ public sealed class DiagnosticsDashboardState
     public string FriendlyLog { get; init; } = string.Empty;
     public string RawLog { get; init; } = string.Empty;
     public bool ShowAdvanced { get; init; }
+    public ControllerStyleDashboardState ControllerStyle { get; init; } = new();
+}
+
+public sealed class ControllerStyleDashboardState
+{
+    public string StyleId { get; init; } = ControllerStyleCatalog.Knuckles;
+    public string Label { get; init; } = string.Empty;
+    public string PreviewText { get; init; } = string.Empty;
 }
 
 public sealed class FirmwareDashboardState
@@ -84,6 +92,18 @@ public sealed class SettingsDashboardState
     public bool EnableDeviceNotifications { get; init; } = true;
     public bool EnableFlashNotifications { get; init; } = true;
     public bool EnableDriverNotifications { get; init; } = true;
+    public bool EnableUpdateNotifications { get; init; } = true;
+    public bool CheckUpdatesOnStartup { get; init; } = true;
+    public bool PromptUpdateWhenAvailable { get; init; } = true;
+    public bool UpdateBusy { get; init; }
+    public bool HasUpdateAvailable { get; init; }
+    public string CurrentVersion { get; init; } = "--";
+    public string LatestVersion { get; init; } = "--";
+    public string LatestPublishedText { get; init; } = "尚未检查";
+    public string LastCheckedText { get; init; } = "尚未检查";
+    public string IgnoredVersion { get; init; } = "未忽略";
+    public string UpdateStatus { get; init; } = "还没有检查过更新。";
+    public string ReleaseAssetName { get; init; } = "--";
     public string ConfigPath { get; init; } = string.Empty;
 }
 

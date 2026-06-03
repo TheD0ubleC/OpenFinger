@@ -28,6 +28,10 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Setup Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+
       - name: Configure CMake
         run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64
 
@@ -38,14 +42,20 @@ jobs:
         run: dotnet build src/OpenFinger.Control/OpenFinger.Control.csproj -c Release
 
       - name: Package
-        run: python x.py package --config Release --skip-build --archive-format zip
+        run: python x.py package --config Release --skip-build --archive-format zip --distribution all --runtime-mode all
 
       - name: Verify package layout
-        run: python x.py verify-package --config Release
+        run: python x.py verify-package --config Release --archive-format zip --distribution all --runtime-mode all
 
       - name: Upload CI package artifact
         uses: actions/upload-artifact@v4
         with:
           name: OpenFinger-ci-win-x64
-          path: dist/OpenFinger-*-win-x64.zip
+          path: |
+            dist/OpenFinger-*-win-x64-*.zip
+            dist/OpenFinger-*-win-x64-*.zip.sha256
+            dist/OpenFingerSetup-*-win-x64-*.exe
+            dist/OpenFingerSetup-*-win-x64-*.exe.sha256
+            dist/OpenFinger-*-checksums.sha256
+            dist/release-notes.md
           if-no-files-found: error

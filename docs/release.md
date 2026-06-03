@@ -5,31 +5,32 @@ OpenFinger 的 GitHub 分发包由 `x.py package` 生成，目标是让用户解
 ## 本地打包
 
 ```powershell
-python x.py package --config Release --archive-format zip
-python x.py verify-package --config Release
+python x.py package --config Release --archive-format zip --distribution all --runtime-mode all
+python x.py verify-package --config Release --archive-format zip --distribution all --runtime-mode all
 ```
 
-默认产物：
+默认会同时生成 4 种 Windows x64 分发形式：
+
+- 便携版（依赖 .NET 运行库）
+- 便携版（自包含）
+- 安装器（依赖 .NET 运行库）
+- 安装器（自包含）
+
+产物布局：
 
 ```text
 dist/
-  OpenFinger-<version>-win-x64/
-    bin/
-      OpenFinger.Control.exe
-      openfinger_service.exe
-      openfinger_controller_bridge.exe
-      openfinger_adc_monitor.exe
-      openfinger_firmware_tool.exe
-      FirmwarePackages/
-      FirmwareTools/
-    drivers/openfinger/
-    docs/
-    README.txt
-    VERSION
-    PROTOCOL_VERSION
-    package-manifest.json
-    checksums.sha256
-  OpenFinger-<version>-win-x64.zip
+  OpenFinger-<version>-win-x64-dotnet/
+  OpenFinger-<version>-win-x64-dotnet.zip
+  OpenFinger-<version>-win-x64-self-contained/
+  OpenFinger-<version>-win-x64-self-contained.zip
+  OpenFinger-<version>-win-x64-dotnet.zip.sha256
+  OpenFinger-<version>-win-x64-self-contained.zip.sha256
+  OpenFingerSetup-<version>-win-x64-dotnet.exe
+  OpenFingerSetup-<version>-win-x64-self-contained.exe
+  OpenFingerSetup-<version>-win-x64-dotnet.exe.sha256
+  OpenFingerSetup-<version>-win-x64-self-contained.exe.sha256
+  OpenFinger-<version>-checksums.sha256
   release-notes.md
 ```
 
@@ -45,8 +46,8 @@ dist/
 workflow 会完成以下工作：
 
 1. 在 Windows runner 上构建 Release。
-2. 生成 `OpenFinger-<version>-win-x64.zip`。
-3. 校验 package manifest 和 SHA-256。
+2. 生成四种发行产物（两种便携版 + 两种安装器）。
+3. 生成发布级总校验清单，以及每个发行文件各自的 `.sha256` 校验文件。
 4. 创建或复用 tag。
 5. 创建 GitHub Release 草稿。
 
@@ -58,8 +59,8 @@ workflow 会完成以下工作：
 
 1. 构建 C++ 组件。
 2. 构建 WPF 控制端。
-3. 生成 zip 分发包。
-4. 校验分发包布局和 checksum。
+3. 生成四种 Windows x64 分发产物。
+4. 校验分发包布局和 release checksum。
 5. 上传 CI artifact。
 
 这能避免 release 前才发现包里缺 exe、driver manifest 或固件资源。

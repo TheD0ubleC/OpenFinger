@@ -323,6 +323,11 @@ public sealed class RuntimeFramePublisher : IDisposable
         public bool JoystickTouched { get; set; }
         public int JoystickAxisMode { get; set; }
         public int JoystickClickAction { get; set; }
+        public bool TriggerClick { get; set; }
+        public bool GripClick { get; set; }
+        public bool PrimaryClick { get; set; }
+        public bool SecondaryClick { get; set; }
+        public bool SystemClick { get; set; }
         public ControllerPoseOffsetConfig PoseOffset { get; set; } = new();
     }
 
@@ -391,6 +396,20 @@ public sealed class RuntimeFramePublisher : IDisposable
         }
     }
 
+    public void UpdateVirtualButtons(string side, bool triggerClick, bool gripClick, bool primaryClick, bool secondaryClick, bool systemClick)
+    {
+        lock (_lock)
+        {
+            var target = SelectHand(side);
+            target.TriggerClick = triggerClick;
+            target.GripClick = gripClick;
+            target.PrimaryClick = primaryClick;
+            target.SecondaryClick = secondaryClick;
+            target.SystemClick = systemClick;
+            PublishLocked();
+        }
+    }
+
     private HandState SelectHand(string side)
     {
         return string.Equals(side, "left", StringComparison.OrdinalIgnoreCase) ? _left : _right;
@@ -429,10 +448,12 @@ public sealed class RuntimeFramePublisher : IDisposable
 
         AppendFingerBends(parts, left.Bends);
         AppendJoystick(parts, left);
+        AppendVirtualButtons(parts, left);
         parts.Add(Bool01(right.Present));
         parts.Add(Bool01(right.Stale));
         AppendFingerBends(parts, right.Bends);
         AppendJoystick(parts, right);
+        AppendVirtualButtons(parts, right);
         if (HasPoseOffset(left.PoseOffset) || HasPoseOffset(right.PoseOffset))
         {
             AppendPoseOffset(parts, left.PoseOffset);
@@ -460,6 +481,15 @@ public sealed class RuntimeFramePublisher : IDisposable
         parts.Add(Bool01(hand.JoystickTouched));
         parts.Add(hand.JoystickAxisMode.ToString(CultureInfo.InvariantCulture));
         parts.Add(hand.JoystickClickAction.ToString(CultureInfo.InvariantCulture));
+    }
+
+    private static void AppendVirtualButtons(List<string> parts, HandState hand)
+    {
+        parts.Add(Bool01(hand.TriggerClick));
+        parts.Add(Bool01(hand.GripClick));
+        parts.Add(Bool01(hand.PrimaryClick));
+        parts.Add(Bool01(hand.SecondaryClick));
+        parts.Add(Bool01(hand.SystemClick));
     }
 
     private static bool HasPoseOffset(ControllerPoseOffsetConfig offset)

@@ -24,7 +24,6 @@ namespace
 
 
 constexpr auto kConfigPollInterval = std::chrono::milliseconds(500);
-constexpr std::uintptr_t kInvalidSocketValue = static_cast<std::uintptr_t>(INVALID_SOCKET);
 constexpr std::size_t kMaxLogLines = 120;
 constexpr auto kDeviceVisibilityGrace = std::chrono::milliseconds(5000);
 
@@ -413,22 +412,11 @@ bool OpenFingerService::Start(std::string* out_error)
         return false;
     }
 
-    if (!OpenRuntimePublisher(&startup_error_))
-    {
-        receiver_.Stop();
-        if (out_error != nullptr)
-        {
-            *out_error = startup_error_;
-        }
-        return false;
-    }
-
     running_ = true;
     AppendLog(
         "service started raw_input="
         + std::to_string(config_store_.config().service.raw_input_udp_port)
-        + " runtime_out="
-        + std::to_string(config_store_.config().runtime.local_runtime_udp_port));
+        + " runtime_publish=control_only");
     runtime_thread_ = std::thread(&OpenFingerService::RuntimeLoop, this);
     discovery_thread_ = std::thread(&OpenFingerService::DiscoveryLoop, this);
     pipe_thread_ = std::thread(&OpenFingerService::PipeLoop, this);
@@ -460,8 +448,6 @@ void OpenFingerService::Stop()
     {
         pipe_thread_.join();
     }
-
-    CloseRuntimePublisher();
     receiver_.Stop();
 }
 
@@ -518,45 +504,6 @@ bool OpenFingerService::ReloadConfigIfChanged()
     return true;
 }
 
-bool OpenFingerService::OpenRuntimePublisher(std::string* out_error)
-{
-    WSADATA data;
-    const int startup_result = WSAStartup(MAKEWORD(2, 2), &data);
-    if (startup_result != 0)
-    {
-        if (out_error != nullptr)
-        {
-            *out_error = "WSAStartup failed for runtime publisher with code " + std::to_string(startup_result);
-        }
-        return false;
-    }
-
-    SOCKET socket_handle = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (socket_handle == INVALID_SOCKET)
-    {
-        if (out_error != nullptr)
-        {
-            *out_error = "socket() failed for runtime publisher";
-        }
-        WSACleanup();
-        return false;
-    }
-
-    runtime_socket_ = static_cast<std::uintptr_t>(socket_handle);
-    return true;
-}
-
-void OpenFingerService::CloseRuntimePublisher()
-{
-    SOCKET socket_handle = static_cast<SOCKET>(runtime_socket_);
-    if (socket_handle != INVALID_SOCKET)
-    {
-        closesocket(socket_handle);
-        runtime_socket_ = kInvalidSocketValue;
-        WSACleanup();
-    }
-}
-
 void OpenFingerService::RuntimeLoop()
 {
     using clock = std::chrono::steady_clock;
@@ -564,11 +511,6 @@ void OpenFingerService::RuntimeLoop()
     std::vector<ReceivedAdcPacket> packets;
     const int publish_hz = std::max(10, config_store_.config().runtime.publish_hz);
     const auto frame_interval = std::chrono::duration_cast<clock::duration>(std::chrono::duration<double>(1.0 / publish_hz));
-
-    sockaddr_in destination = {};
-    destination.sin_family = AF_INET;
-    destination.sin_port = htons(static_cast<u_short>(config_store_.config().runtime.local_runtime_udp_port));
-    inet_pton(AF_INET, "127.0.0.1", &destination.sin_addr);
 
     while (running_)
     {
@@ -600,20 +542,7 @@ void OpenFingerService::RuntimeLoop()
             SaveConfig();
         }
 
-        RuntimeFrame frame = filter_.BuildRuntimeFrame(++runtime_seq_, MonotonicMilliseconds());
-        const std::string payload = SerializeRuntimeFrame(frame);
-
-        SOCKET socket_handle = static_cast<SOCKET>(runtime_socket_);
-        if (socket_handle != INVALID_SOCKET)
-        {
-            sendto(
-                socket_handle,
-                payload.c_str(),
-                static_cast<int>(payload.size()),
-                0,
-                reinterpret_cast<const sockaddr*>(&destination),
-                sizeof(destination));
-        }
+        filter_.BuildRuntimeFrame(++runtime_seq_, MonotonicMilliseconds());
 
         std::this_thread::sleep_until(frame_start + frame_interval);
     }

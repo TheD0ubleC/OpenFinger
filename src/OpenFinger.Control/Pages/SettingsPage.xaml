@@ -116,6 +116,72 @@
 
             <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,20">
                 <StackPanel>
+                    <TextBlock Text="更新" Style="{StaticResource SectionTitleStyle}" />
+
+                    <controls:LabeledReadonlyField x:Name="CurrentVersionField" Label="当前版本" Value="--" />
+                    <controls:LabeledReadonlyField x:Name="LatestVersionField" Label="最新版本" Value="--" />
+                    <controls:LabeledReadonlyField x:Name="LatestPublishedField" Label="发行时间" Value="尚未检查" />
+                    <controls:LabeledReadonlyField x:Name="LastCheckedField" Label="上次检查" Value="尚未检查" />
+                    <controls:LabeledReadonlyField x:Name="IgnoredVersionField" Label="忽略版本" Value="未忽略" />
+                    <controls:LabeledReadonlyField x:Name="ReleaseAssetField" Label="发行包" Value="--" />
+
+                    <TextBlock x:Name="UpdateStatusTextBlock"
+                               Margin="0,2,0,12"
+                               Foreground="{StaticResource BrushSubText}"
+                               TextWrapping="Wrap"
+                               Text="还没有检查过更新。" />
+
+                    <CheckBox x:Name="CheckUpdatesOnStartupCheckBox"
+                              Style="{StaticResource AppCheckBoxStyle}"
+                              Margin="0,0,0,10"
+                              Content="启动时自动检查更新"
+                              Checked="OnCheckUpdatesOnStartupChanged"
+                              Unchecked="OnCheckUpdatesOnStartupChanged" />
+                    <CheckBox x:Name="PromptUpdateWhenAvailableCheckBox"
+                              Style="{StaticResource AppCheckBoxStyle}"
+                              Margin="0,0,0,10"
+                              Content="发现新版本时自动弹出提示"
+                              Checked="OnPromptUpdateWhenAvailableChanged"
+                              Unchecked="OnPromptUpdateWhenAvailableChanged" />
+                    <CheckBox x:Name="UpdateNotificationsCheckBox"
+                              Style="{StaticResource AppCheckBoxStyle}"
+                              Margin="0,0,0,14"
+                              Content="更新检测和结果提示"
+                              Checked="OnUpdateNotificationsChanged"
+                              Unchecked="OnUpdateNotificationsChanged" />
+
+                    <WrapPanel>
+                        <Button Style="{StaticResource SecondaryButtonStyle}"
+                                MinWidth="112"
+                                Margin="0,0,10,10"
+                                Content="立即检查更新"
+                                Click="OnCheckUpdatesClick" />
+                        <Button Style="{StaticResource SecondaryButtonStyle}"
+                                MinWidth="112"
+                                Margin="0,0,10,10"
+                                Content="预览更新提示"
+                                Click="OnPreviewUpdateDialogClick" />
+                        <Button Style="{StaticResource SecondaryButtonStyle}"
+                                MinWidth="112"
+                                Margin="0,0,10,10"
+                                Content="查看发行页"
+                                Click="OnOpenReleasePageClick" />
+                        <Button Style="{StaticResource SecondaryButtonStyle}"
+                                MinWidth="112"
+                                Margin="0,0,10,10"
+                                Content="打开更新目录"
+                                Click="OnOpenUpdatesFolderClick" />
+                        <Button Style="{StaticResource SecondaryButtonStyle}"
+                                MinWidth="128"
+                                Margin="0,0,0,10"
+                                Content="重新启用版本提醒"
+                                Click="OnClearIgnoredVersionClick" />
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,20">
+                <StackPanel>
                     <TextBlock Text="界面" Style="{StaticResource SectionTitleStyle}" />
 
                     <TextBlock Text="主题" Style="{StaticResource InputLabelStyle}" />

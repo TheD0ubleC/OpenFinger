@@ -2,9 +2,12 @@ namespace OpenFinger.Control.Pages;
 
 public partial class LogPage : UserControl
 {
+    private bool _suppressControllerStyleEvents;
+
     public LogPage()
     {
         InitializeComponent();
+        ControllerStyleComboBox.ItemsSource = ControllerStyleCatalog.Options;
     }
 
     public void UpdateDiagnostics(DiagnosticsDashboardState state)
@@ -16,6 +19,7 @@ public partial class LogPage : UserControl
         FriendlyLogTextBox.Text = state.FriendlyLog;
         RawLogTextBox.Text = state.RawLog;
         SetAdvancedMode(state.ShowAdvanced);
+        UpdateControllerStyleEditors(state.ControllerStyle);
     }
 
     public void SetAdvancedMode(bool enabled)
@@ -36,6 +40,21 @@ public partial class LogPage : UserControl
     private MainWindow? GetOwnerWindow()
     {
         return Window.GetWindow(this) as MainWindow;
+    }
+
+    private void UpdateControllerStyleEditors(ControllerStyleDashboardState state)
+    {
+        _suppressControllerStyleEvents = true;
+        try
+        {
+            ControllerStyleComboBox.SelectedValue = state.StyleId;
+            ControllerStyleLabelTextBlock.Text = string.IsNullOrWhiteSpace(state.Label) ? "未设置" : state.Label;
+            ControllerStylePreviewTextBlock.Text = state.PreviewText;
+        }
+        finally
+        {
+            _suppressControllerStyleEvents = false;
+        }
     }
 
     private async void OnRefreshClick(object sender, RoutedEventArgs e)
@@ -90,6 +109,19 @@ public partial class LogPage : UserControl
         if (owner is not null)
         {
             await owner.RestartSteamVrAsync();
+        }
+    }
+
+    private void OnControllerStylePresetChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_suppressControllerStyleEvents)
+        {
+            return;
+        }
+
+        if (sender is ComboBox { SelectedValue: string value })
+        {
+            GetOwnerWindow()?.SetControllerStylePreset(value);
         }
     }
 

@@ -37,7 +37,7 @@ Wi-Fi 配置是否写入
 Service 是否运行
 Driver 是否安装
 SteamVR 是否加载 openfinger driver
-OFRUNTIME 是否在 127.0.0.1:39003 输出
+OpenFinger.Control 是否正在运行，并向 127.0.0.1:39003 输出 OFRUNTIME
 ControllerBridge 是否运行
 ```
 

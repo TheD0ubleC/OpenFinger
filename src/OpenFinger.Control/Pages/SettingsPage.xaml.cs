@@ -31,8 +31,18 @@ public partial class SettingsPage : UserControl
             DeviceNotificationsCheckBox.IsChecked = state.EnableDeviceNotifications;
             FlashNotificationsCheckBox.IsChecked = state.EnableFlashNotifications;
             DriverNotificationsCheckBox.IsChecked = state.EnableDriverNotifications;
+            UpdateNotificationsCheckBox.IsChecked = state.EnableUpdateNotifications;
+            CheckUpdatesOnStartupCheckBox.IsChecked = state.CheckUpdatesOnStartup;
+            PromptUpdateWhenAvailableCheckBox.IsChecked = state.PromptUpdateWhenAvailable;
             ThemeModeComboBox.SelectedValue = state.ThemeMode;
             ShowAdvancedCheckBox.IsChecked = state.ShowAdvanced;
+            CurrentVersionField.Value = state.CurrentVersion;
+            LatestVersionField.Value = state.LatestVersion;
+            LatestPublishedField.Value = state.LatestPublishedText;
+            LastCheckedField.Value = state.LastCheckedText;
+            IgnoredVersionField.Value = state.IgnoredVersion;
+            ReleaseAssetField.Value = state.ReleaseAssetName;
+            UpdateStatusTextBlock.Text = state.UpdateStatus;
             ConfigPathField.Value = state.ConfigPath;
             UpdateStartupDependentState();
             UpdateNotificationDependentState();
@@ -59,6 +69,7 @@ public partial class SettingsPage : UserControl
         DeviceNotificationsCheckBox.IsEnabled = enabled;
         FlashNotificationsCheckBox.IsEnabled = enabled;
         DriverNotificationsCheckBox.IsEnabled = enabled;
+        UpdateNotificationsCheckBox.IsEnabled = enabled;
     }
 
     private void OnCloseActionChanged(object sender, SelectionChangedEventArgs e)
@@ -223,5 +234,66 @@ public partial class SettingsPage : UserControl
     private void OnOpenConfigFolderClick(object sender, RoutedEventArgs e)
     {
         GetOwnerWindow()?.OpenConfigDirectory();
+    }
+
+    private void OnUpdateNotificationsChanged(object sender, RoutedEventArgs e)
+    {
+        if (_suppressEvents)
+        {
+            return;
+        }
+
+        GetOwnerWindow()?.SetUpdateNotificationsEnabled(UpdateNotificationsCheckBox.IsChecked == true);
+    }
+
+    private void OnCheckUpdatesOnStartupChanged(object sender, RoutedEventArgs e)
+    {
+        if (_suppressEvents)
+        {
+            return;
+        }
+
+        GetOwnerWindow()?.SetCheckUpdatesOnStartup(CheckUpdatesOnStartupCheckBox.IsChecked == true);
+    }
+
+    private void OnPromptUpdateWhenAvailableChanged(object sender, RoutedEventArgs e)
+    {
+        if (_suppressEvents)
+        {
+            return;
+        }
+
+        GetOwnerWindow()?.SetPromptUpdateWhenAvailable(PromptUpdateWhenAvailableCheckBox.IsChecked == true);
+    }
+
+    private async void OnCheckUpdatesClick(object sender, RoutedEventArgs e)
+    {
+        if (GetOwnerWindow() is { } owner)
+        {
+            await owner.CheckForUpdatesAsync(userInitiated: true);
+        }
+    }
+
+    private async void OnPreviewUpdateDialogClick(object sender, RoutedEventArgs e)
+    {
+        if (GetOwnerWindow() is { } owner)
+        {
+            await owner.PreviewUpdateDialogAsync();
+        }
+    }
+
+    private void OnOpenReleasePageClick(object sender, RoutedEventArgs e)
+    {
+        GetOwnerWindow()?.OpenReleasePage();
+    }
+
+    private void OnOpenUpdatesFolderClick(object sender, RoutedEventArgs e)
+    {
+        GetOwnerWindow()?.OpenUpdatesDirectory();
+    }
+
+    private void OnClearIgnoredVersionClick(object sender, RoutedEventArgs e)
+    {
+        GetOwnerWindow()?.ClearIgnoredUpdateVersion();
     }
 }

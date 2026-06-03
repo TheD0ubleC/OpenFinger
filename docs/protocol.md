@@ -107,7 +107,7 @@ UDP 包不保证到达，也不保证顺序。Service 需要按序号和时间�
 openfinger_service.exe -> driver_openfinger.dll
 ```
 
-`OFRUNTIME` 是内部协议。它面向同一发布包内的 Service 和 Driver，不承诺跨版本兼容。
+`OFRUNTIME` 是内部协议。它面向同一发布包内的 Control、Driver 和 Bridge，不承诺跨版本兼容。
 
 当前实现需要兼容旧字段数量和新字段数量。新增虚拟控制器 6DoF 偏移时，只允许在末尾追加字段。不要在中间插入字段。
 

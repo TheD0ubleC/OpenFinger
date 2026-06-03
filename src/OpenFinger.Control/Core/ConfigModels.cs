@@ -11,6 +11,7 @@ public sealed class OpenFingerAppConfig
     public ServiceConfig Service { get; set; } = new();
     public HandsConfig Hands { get; set; } = new();
     public JoystickSettingsConfig Joystick { get; set; } = new();
+    public GestureSettingsConfig Gestures { get; set; } = new();
     public ControllerPoseOffsetsConfig PoseOffsets { get; set; } = new();
     public FirmwareConfigState Firmware { get; set; } = new();
     public AlgorithmTuningConfig AlgorithmTuning { get; set; } = new();
@@ -80,6 +81,64 @@ public sealed class JoystickHandSettings
     public int CenterRawY { get; set; } = -1;
 }
 
+public sealed class GestureSettingsConfig
+{
+    public GestureHandSettings Left { get; set; } = GestureHandSettings.CreateDefault();
+    public GestureHandSettings Right { get; set; } = GestureHandSettings.CreateDefault();
+}
+
+public sealed class GestureHandSettings
+{
+    public bool Enabled { get; set; }
+    public Dictionary<string, GestureBindingConfig> Mappings { get; set; } = CreateDefaultMappings();
+
+    public static GestureHandSettings CreateDefault() => new() { Mappings = CreateDefaultMappings() };
+
+    private static Dictionary<string, GestureBindingConfig> CreateDefaultMappings()
+    {
+        return GestureComboCatalog.Definitions.ToDictionary(
+            item => item.Key,
+            _ => new GestureBindingConfig(),
+            StringComparer.OrdinalIgnoreCase);
+    }
+}
+
+public sealed class GestureBindingConfig
+{
+    public bool Enabled { get; set; }
+    public string MappedButton { get; set; } = GestureButtonCatalog.Disabled;
+    public GestureCalibrationConfig Calibration { get; set; } = new();
+}
+
+public sealed class GestureCalibrationConfig
+{
+    public bool Calibrated { get; set; }
+    public double OpenScore { get; set; }
+    public double PinchScore { get; set; } = 0.75;
+    public double TriggerThreshold { get; set; } = 0.62;
+    public double ReleaseThreshold { get; set; } = 0.42;
+    public double ConfidenceThreshold { get; set; } = 0.54;
+    public int CalibrationRepeats { get; set; } = 5;
+    public double ThumbOpenMean { get; set; }
+    public double ThumbPinchMean { get; set; } = 0.75;
+    public double TargetOpenMean { get; set; }
+    public double TargetPinchMean { get; set; } = 0.75;
+    public double PrimaryOpenScore { get; set; }
+    public double PrimaryPinchScore { get; set; } = 0.75;
+    public double[] SupportOpenMeans { get; set; } = new double[3];
+    public double[] SupportPinchMeans { get; set; } = new double[3];
+    public double[] SupportPinchStdDevs { get; set; } = new double[3];
+    public double[] SupportInfluences { get; set; } = new[] { 0.2, 0.2, 0.2 };
+}
+
+public sealed class ControllerStyleConfigState
+{
+    public string StyleId { get; set; } = ControllerStyleCatalog.Knuckles;
+    public string DisplayName { get; set; } = string.Empty;
+    public string ControllerTypeOverride { get; set; } = string.Empty;
+    public string RenderModelOverride { get; set; } = string.Empty;
+}
+
 
 public sealed class ControllerPoseOffsetsConfig
 {
@@ -141,6 +200,7 @@ public sealed class UiConfig
     public WindowConfig Window { get; set; } = new();
     public NavigationConfig Navigation { get; set; } = new();
     public NotificationConfig Notifications { get; set; } = new();
+    public UpdateConfig Updates { get; set; } = new();
 }
 
 public sealed class TrayConfig
@@ -157,8 +217,8 @@ public sealed class WindowConfig
     public bool RememberBounds { get; set; } = true;
     public double Left { get; set; } = 100;
     public double Top { get; set; } = 100;
-    public double Width { get; set; } = 1180;
-    public double Height { get; set; } = 760;
+    public double Width { get; set; } = 1360;
+    public double Height { get; set; } = 900;
     public bool WasMaximized { get; set; }
 }
 
@@ -175,6 +235,16 @@ public sealed class NotificationConfig
     public bool DeviceEvents { get; set; } = true;
     public bool FlashResults { get; set; } = true;
     public bool DriverResults { get; set; } = true;
+    public bool UpdateResults { get; set; } = true;
+}
+
+public sealed class UpdateConfig
+{
+    public bool CheckOnStartup { get; set; } = true;
+    public bool PromptWhenAvailable { get; set; } = true;
+    public string IgnoredVersion { get; set; } = string.Empty;
+    public string LastCheckedUtc { get; set; } = string.Empty;
+    public string LastKnownVersion { get; set; } = string.Empty;
 }
 
 public sealed class KnownDevice
@@ -289,6 +359,13 @@ public sealed class OpenFingerConfigStore
         config.Joystick ??= new JoystickSettingsConfig();
         config.Joystick.Left ??= new JoystickHandSettings();
         config.Joystick.Right ??= new JoystickHandSettings();
+        config.Gestures ??= new GestureSettingsConfig();
+        config.Gestures.Left ??= GestureHandSettings.CreateDefault();
+        config.Gestures.Right ??= GestureHandSettings.CreateDefault();
+        config.Gestures.Left.Mappings ??= GestureHandSettings.CreateDefault().Mappings;
+        config.Gestures.Right.Mappings ??= GestureHandSettings.CreateDefault().Mappings;
+        NormalizeGestureHand(config.Gestures.Left);
+        NormalizeGestureHand(config.Gestures.Right);
         config.PoseOffsets ??= new ControllerPoseOffsetsConfig();
         config.PoseOffsets.Left ??= new ControllerPoseOffsetConfig();
         config.PoseOffsets.Right ??= new ControllerPoseOffsetConfig();
@@ -301,6 +378,7 @@ public sealed class OpenFingerConfigStore
         config.Ui.Window ??= new WindowConfig();
         config.Ui.Navigation ??= new NavigationConfig();
         config.Ui.Notifications ??= new NotificationConfig();
+        config.Ui.Updates ??= new UpdateConfig();
         config.Devices ??= new List<KnownDevice>();
         config.Firmware.Target = FirmwareTargetCatalog.NormalizeTarget(config.Firmware.Target);
         config.Firmware.VersionTag = string.IsNullOrWhiteSpace(config.Firmware.VersionTag) ? OpenFingerVersion.Version : config.Firmware.VersionTag;
@@ -322,8 +400,8 @@ public sealed class OpenFingerConfigStore
         config.Runtime.PublishHz = Math.Clamp(config.Runtime.PublishHz, 1, 240);
         config.Service.RawInputUdpPort = ClampPort(config.Service.RawInputUdpPort, 39004);
 
-        config.Ui.Window.Width = ClampFinite(config.Ui.Window.Width, 1180, 640, 7680);
-        config.Ui.Window.Height = ClampFinite(config.Ui.Window.Height, 760, 480, 4320);
+        config.Ui.Window.Width = ClampFinite(config.Ui.Window.Width, 1360, 640, 7680);
+        config.Ui.Window.Height = ClampFinite(config.Ui.Window.Height, 900, 480, 4320);
         config.Ui.Window.Left = ClampFinite(config.Ui.Window.Left, 100, -32000, 32000);
         config.Ui.Window.Top = ClampFinite(config.Ui.Window.Top, 100, -32000, 32000);
 
@@ -337,6 +415,8 @@ public sealed class OpenFingerConfigStore
         ClampHand(config.Hands.Right);
         ClampJoystick(config.Joystick.Left);
         ClampJoystick(config.Joystick.Right);
+        ClampGestureHand(config.Gestures.Left);
+        ClampGestureHand(config.Gestures.Right);
     }
 
     private static void ClampHand(HandConfig hand)
@@ -351,6 +431,92 @@ public sealed class OpenFingerConfigStore
     private static void ClampJoystick(JoystickHandSettings settings)
     {
         settings.DeadzonePercent = ClampFinite(settings.DeadzonePercent, 12, 0, 100);
+    }
+
+    private static void NormalizeGestureHand(GestureHandSettings hand)
+    {
+        var defaults = GestureHandSettings.CreateDefault().Mappings;
+        foreach (var entry in defaults)
+        {
+            if (!hand.Mappings.TryGetValue(entry.Key, out var binding) || binding is null)
+            {
+                hand.Mappings[entry.Key] = new GestureBindingConfig();
+                continue;
+            }
+
+            binding.Calibration ??= new GestureCalibrationConfig();
+            NormalizeGestureCalibration(binding.Calibration);
+        }
+
+        foreach (var staleKey in hand.Mappings.Keys.Where(key => !defaults.ContainsKey(key)).ToArray())
+        {
+            hand.Mappings.Remove(staleKey);
+        }
+    }
+
+    private static void ClampGestureHand(GestureHandSettings hand)
+    {
+        foreach (var combo in GestureComboCatalog.Definitions)
+        {
+            if (!hand.Mappings.TryGetValue(combo.Key, out var binding) || binding is null)
+            {
+                hand.Mappings[combo.Key] = new GestureBindingConfig();
+                continue;
+            }
+
+            binding.MappedButton = GestureButtonCatalog.Normalize(binding.MappedButton);
+            binding.Calibration ??= new GestureCalibrationConfig();
+            NormalizeGestureCalibration(binding.Calibration);
+            binding.Calibration.OpenScore = ClampFinite(binding.Calibration.OpenScore, 0, 0, 1);
+            binding.Calibration.PinchScore = ClampFinite(binding.Calibration.PinchScore, 0.75, 0, 1);
+            binding.Calibration.TriggerThreshold = ClampFinite(binding.Calibration.TriggerThreshold, 0.62, 0, 1);
+            binding.Calibration.ReleaseThreshold = ClampFinite(binding.Calibration.ReleaseThreshold, 0.42, 0, 1);
+            binding.Calibration.ConfidenceThreshold = ClampFinite(binding.Calibration.ConfidenceThreshold, 0.54, 0, 1);
+            binding.Calibration.CalibrationRepeats = Math.Clamp(binding.Calibration.CalibrationRepeats, 1, 10);
+            binding.Calibration.ThumbOpenMean = ClampFinite(binding.Calibration.ThumbOpenMean, 0, 0, 1);
+            binding.Calibration.ThumbPinchMean = ClampFinite(binding.Calibration.ThumbPinchMean, 0.75, 0, 1);
+            binding.Calibration.TargetOpenMean = ClampFinite(binding.Calibration.TargetOpenMean, 0, 0, 1);
+            binding.Calibration.TargetPinchMean = ClampFinite(binding.Calibration.TargetPinchMean, 0.75, 0, 1);
+            binding.Calibration.PrimaryOpenScore = ClampFinite(binding.Calibration.PrimaryOpenScore, 0, 0, 1);
+            binding.Calibration.PrimaryPinchScore = ClampFinite(binding.Calibration.PrimaryPinchScore, 0.75, 0, 1);
+            for (var index = 0; index < 3; index++)
+            {
+                binding.Calibration.SupportOpenMeans[index] = ClampFinite(binding.Calibration.SupportOpenMeans[index], 0, 0, 1);
+                binding.Calibration.SupportPinchMeans[index] = ClampFinite(binding.Calibration.SupportPinchMeans[index], 0, 0, 1);
+                binding.Calibration.SupportPinchStdDevs[index] = ClampFinite(binding.Calibration.SupportPinchStdDevs[index], 0.08, 0, 1);
+                binding.Calibration.SupportInfluences[index] = ClampFinite(binding.Calibration.SupportInfluences[index], 0.2, 0, 1);
+            }
+        }
+    }
+
+    private static void NormalizeGestureCalibration(GestureCalibrationConfig calibration)
+    {
+        calibration.SupportOpenMeans = EnsureGestureVector(calibration.SupportOpenMeans, 3, 0.0);
+        calibration.SupportPinchMeans = EnsureGestureVector(calibration.SupportPinchMeans, 3, 0.0);
+        calibration.SupportPinchStdDevs = EnsureGestureVector(calibration.SupportPinchStdDevs, 3, 0.08);
+        calibration.SupportInfluences = EnsureGestureVector(calibration.SupportInfluences, 3, 0.2);
+    }
+
+    private static double[] EnsureGestureVector(double[]? values, int size, double fallback)
+    {
+        var normalized = new double[size];
+        if (values is not null)
+        {
+            for (var index = 0; index < Math.Min(values.Length, size); index++)
+            {
+                normalized[index] = double.IsFinite(values[index]) ? values[index] : fallback;
+            }
+        }
+
+        for (var index = 0; index < size; index++)
+        {
+            if (!double.IsFinite(normalized[index]) || normalized[index] == 0 && fallback != 0 && (values is null || index >= values.Length))
+            {
+                normalized[index] = fallback;
+            }
+        }
+
+        return normalized;
     }
 
     private static int ClampPort(int value, int fallback)

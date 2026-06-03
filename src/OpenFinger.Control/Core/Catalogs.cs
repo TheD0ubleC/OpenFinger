@@ -64,6 +64,7 @@ public static class UiPageCatalog
     public const string Devices = "devices";
     public const string Firmware = "firmware";
     public const string Calibration = "calibration";
+    public const string Gestures = "gestures";
     public const string SteamVr = "steamvr";
     public const string Settings = "settings";
     public const string About = "about";
@@ -75,6 +76,7 @@ public static class UiPageCatalog
         new FirmwareModeOption { Value = Devices, Label = "设备" },
         new FirmwareModeOption { Value = Firmware, Label = "固件" },
         new FirmwareModeOption { Value = Calibration, Label = "校准" },
+        new FirmwareModeOption { Value = Gestures, Label = "手势" },
         new FirmwareModeOption { Value = SteamVr, Label = "SteamVR" },
         new FirmwareModeOption { Value = Settings, Label = "设置" },
         new FirmwareModeOption { Value = About, Label = "关于" }
@@ -148,6 +150,194 @@ public static class JoystickOrientationCatalog
     private static string Normalize(string? value) => IsValid(value)
         ? Options.First(item => string.Equals(item.Value, value, StringComparison.OrdinalIgnoreCase)).Value
         : Normal;
+}
+
+public sealed class GestureComboDefinition
+{
+    public string Key { get; init; } = string.Empty;
+    public string Label { get; init; } = string.Empty;
+    public int TargetFingerIndex { get; init; }
+}
+
+public static class GestureComboCatalog
+{
+    public const string ThumbIndex = "thumb_index";
+    public const string ThumbMiddle = "thumb_middle";
+    public const string ThumbRing = "thumb_ring";
+    public const string ThumbPinky = "thumb_pinky";
+
+    public static IReadOnlyList<GestureComboDefinition> Definitions { get; } = new[]
+    {
+        new GestureComboDefinition { Key = ThumbIndex, Label = "拇指 + 食指", TargetFingerIndex = 1 },
+        new GestureComboDefinition { Key = ThumbMiddle, Label = "拇指 + 中指", TargetFingerIndex = 2 },
+        new GestureComboDefinition { Key = ThumbRing, Label = "拇指 + 无名指", TargetFingerIndex = 3 },
+        new GestureComboDefinition { Key = ThumbPinky, Label = "拇指 + 小指", TargetFingerIndex = 4 }
+    };
+
+    public static GestureComboDefinition Get(string? key)
+    {
+        var normalized = Normalize(key);
+        return Definitions.First(item => string.Equals(item.Key, normalized, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public static string Normalize(string? key)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return ThumbIndex;
+        }
+
+        return Definitions.Any(item => string.Equals(item.Key, key, StringComparison.OrdinalIgnoreCase))
+            ? Definitions.First(item => string.Equals(item.Key, key, StringComparison.OrdinalIgnoreCase)).Key
+            : ThumbIndex;
+    }
+}
+
+public static class GestureButtonCatalog
+{
+    public const string Disabled = "disabled";
+    public const string Trigger = "trigger";
+    public const string Grip = "grip";
+    public const string Primary = "primary";
+    public const string Secondary = "secondary";
+    public const string System = "system";
+
+    public static IReadOnlyList<string> Values { get; } = new[]
+    {
+        Disabled,
+        Trigger,
+        Grip,
+        Primary,
+        Secondary,
+        System
+    };
+
+    public static string Normalize(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return Disabled;
+        }
+
+        return Values.Any(item => string.Equals(item, value, StringComparison.OrdinalIgnoreCase))
+            ? Values.First(item => string.Equals(item, value, StringComparison.OrdinalIgnoreCase))
+            : Disabled;
+    }
+
+    private static readonly IReadOnlyList<FirmwareModeOption> LeftOptions = new[]
+    {
+        new FirmwareModeOption { Value = Disabled, Label = "不映射" },
+        new FirmwareModeOption { Value = Trigger, Label = "扳机键" },
+        new FirmwareModeOption { Value = Grip, Label = "握把键" },
+        new FirmwareModeOption { Value = Primary, Label = "X 键" },
+        new FirmwareModeOption { Value = Secondary, Label = "Y 键" },
+        new FirmwareModeOption { Value = System, Label = "系统键" }
+    };
+
+    private static readonly IReadOnlyList<FirmwareModeOption> RightOptions = new[]
+    {
+        new FirmwareModeOption { Value = Disabled, Label = "不映射" },
+        new FirmwareModeOption { Value = Trigger, Label = "扳机键" },
+        new FirmwareModeOption { Value = Grip, Label = "握把键" },
+        new FirmwareModeOption { Value = Primary, Label = "A 键" },
+        new FirmwareModeOption { Value = Secondary, Label = "B 键" },
+        new FirmwareModeOption { Value = System, Label = "系统键" }
+    };
+
+    public static IReadOnlyList<FirmwareModeOption> CreateOptions(string side)
+    {
+        return string.Equals(side, "left", StringComparison.OrdinalIgnoreCase) ? LeftOptions : RightOptions;
+    }
+
+    public static string GetLabel(string side, string? value)
+    {
+        var normalized = Normalize(value);
+        return CreateOptions(side).First(item => string.Equals(item.Value, normalized, StringComparison.OrdinalIgnoreCase)).Label;
+    }
+}
+
+public sealed class ControllerStyleDefinition
+{
+    public string Value { get; init; } = ControllerStyleCatalog.Knuckles;
+    public string Label { get; init; } = string.Empty;
+    public string ControllerType { get; init; } = string.Empty;
+    public string RenderModel { get; init; } = string.Empty;
+}
+
+public static class ControllerStyleCatalog
+{
+    public const string Knuckles = "knuckles";
+    public const string Quest1 = "quest_1";
+    public const string Quest2 = "quest_2";
+    public const string Quest3 = "quest_3";
+    public const string Quest3S = "quest_3s";
+    public const string QuestPro = "quest_pro";
+    public const string RiftS = "rift_s";
+    public const string ViveController = "vive_controller";
+    public const string ViveTracker2018 = "vive_tracker_2018";
+    public const string ViveTracker3 = "vive_tracker_3";
+    public const string ViveTrackerUltimate = "vive_tracker_ultimate";
+    public const string PicoNeo3 = "pico_neo3";
+    public const string PicoNeo3Link = "pico_neo3_link";
+    public const string Pico4 = "pico_4";
+    public const string Pico4Ultra = "pico_4_ultra";
+
+    public static IReadOnlyList<ControllerStyleDefinition> Definitions { get; } = new[]
+    {
+        new ControllerStyleDefinition { Value = Knuckles, Label = "Valve Index / Knuckles", ControllerType = "knuckles", RenderModel = "" },
+        new ControllerStyleDefinition { Value = Quest1, Label = "Meta Quest 1", ControllerType = "oculus_touch", RenderModel = "" },
+        new ControllerStyleDefinition { Value = Quest2, Label = "Meta Quest 2", ControllerType = "oculus_touch", RenderModel = "" },
+        new ControllerStyleDefinition { Value = Quest3, Label = "Meta Quest 3", ControllerType = "oculus_touch", RenderModel = "" },
+        new ControllerStyleDefinition { Value = Quest3S, Label = "Meta Quest 3S", ControllerType = "oculus_touch", RenderModel = "" },
+        new ControllerStyleDefinition { Value = QuestPro, Label = "Meta Quest Pro", ControllerType = "oculus_touch", RenderModel = "" },
+        new ControllerStyleDefinition { Value = RiftS, Label = "Meta Rift S", ControllerType = "oculus_touch", RenderModel = "" },
+        new ControllerStyleDefinition { Value = ViveController, Label = "HTC Vive Wand", ControllerType = "vive_controller", RenderModel = "" },
+        new ControllerStyleDefinition { Value = ViveTracker2018, Label = "Vive Tracker 2018", ControllerType = "vive_tracker", RenderModel = "" },
+        new ControllerStyleDefinition { Value = ViveTracker3, Label = "Vive Tracker 3.0", ControllerType = "vive_tracker", RenderModel = "" },
+        new ControllerStyleDefinition { Value = ViveTrackerUltimate, Label = "Vive Ultimate Tracker", ControllerType = "vive_tracker", RenderModel = "" },
+        new ControllerStyleDefinition { Value = PicoNeo3, Label = "PICO Neo 3", ControllerType = "pico_controller", RenderModel = "" },
+        new ControllerStyleDefinition { Value = PicoNeo3Link, Label = "PICO Neo 3 Link", ControllerType = "pico_controller", RenderModel = "" },
+        new ControllerStyleDefinition { Value = Pico4, Label = "PICO 4", ControllerType = "pico_controller", RenderModel = "" },
+        new ControllerStyleDefinition { Value = Pico4Ultra, Label = "PICO 4 Ultra", ControllerType = "pico_controller", RenderModel = "" }
+    };
+
+    public static IReadOnlyList<FirmwareModeOption> Options { get; } = Definitions
+        .Select(item => new FirmwareModeOption { Value = item.Value, Label = item.Label })
+        .ToArray();
+
+    public static string Normalize(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return Knuckles;
+        }
+
+        var lowered = value.Trim().ToLowerInvariant();
+        if (lowered == "oculus_touch")
+        {
+            return Quest3;
+        }
+
+        if (lowered == "vive_tracker")
+        {
+            return ViveTracker3;
+        }
+
+        if (lowered == "pico_controller")
+        {
+            return Pico4;
+        }
+
+        return Definitions.Any(item => string.Equals(item.Value, value, StringComparison.OrdinalIgnoreCase))
+            ? Definitions.First(item => string.Equals(item.Value, value, StringComparison.OrdinalIgnoreCase)).Value
+            : Knuckles;
+    }
+
+    public static ControllerStyleDefinition Get(string? value)
+    {
+        var normalized = Normalize(value);
+        return Definitions.First(item => string.Equals(item.Value, normalized, StringComparison.OrdinalIgnoreCase));
+    }
 }
 
 public sealed class FirmwareTargetDefinition

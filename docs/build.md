@@ -43,14 +43,30 @@ python x.py run --config Debug
 
 ```powershell
 python x.py package --config Release
+python x.py package --config Release --archive-format zip --distribution all --runtime-mode all
 ```
 
 输出在：
 
 ```text
-dist/OpenFinger-<version>-win-x64/
-dist/OpenFinger-<version>-win-x64.tar.gz
+dist/OpenFinger-<version>-win-x64-dotnet/
+dist/OpenFinger-<version>-win-x64-dotnet.zip
+dist/OpenFinger-<version>-win-x64-dotnet.zip.sha256
+dist/OpenFinger-<version>-win-x64-self-contained/
+dist/OpenFinger-<version>-win-x64-self-contained.zip
+dist/OpenFinger-<version>-win-x64-self-contained.zip.sha256
+dist/OpenFingerSetup-<version>-win-x64-dotnet.exe
+dist/OpenFingerSetup-<version>-win-x64-dotnet.exe.sha256
+dist/OpenFingerSetup-<version>-win-x64-self-contained.exe
+dist/OpenFingerSetup-<version>-win-x64-self-contained.exe.sha256
+dist/OpenFinger-<version>-checksums.sha256
 ```
+
+参数说明：
+
+- `--distribution portable|installer|all`：选择便携版、安装器或同时生成
+- `--runtime-mode dotnet|self-contained|all`：选择依赖 .NET 运行库、自包含或同时生成
+- `--archive-format zip|tar.gz|both`：便携版压缩格式
 
 ## 单组件构建
 

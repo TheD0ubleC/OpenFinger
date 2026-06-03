@@ -54,8 +54,6 @@ public:
     void WaitForExit();
 
 private:
-    bool OpenRuntimePublisher(std::string* out_error);
-    void CloseRuntimePublisher();
     bool ReloadConfigIfChanged();
     void RefreshConfigWriteTime();
     void RuntimeLoop();
@@ -118,7 +116,6 @@ private:
     std::deque<std::string> logs_;
 
     std::uint64_t runtime_seq_ = 0;
-    std::uintptr_t runtime_socket_ = static_cast<std::uintptr_t>(-1);
     std::uintptr_t pipe_handle_ = static_cast<std::uintptr_t>(-1);
     std::string startup_error_;
     std::filesystem::file_time_type config_write_time_ {};

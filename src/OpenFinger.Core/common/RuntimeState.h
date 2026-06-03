@@ -33,6 +33,15 @@ struct ControllerPoseOffset
     float rotation_roll = 0.0f;
 };
 
+struct RuntimeVirtualButtons
+{
+    bool trigger_click = false;
+    bool grip_click = false;
+    bool primary_click = false;
+    bool secondary_click = false;
+    bool system_click = false;
+};
+
 struct HandRuntimeState
 {
     HandSide side = HandSide::Left;
@@ -53,6 +62,7 @@ struct HandRuntimeState
     bool joystick_touch = false;
     int joystick_axis_mode = 0;
     int joystick_click_action = 0;
+    RuntimeVirtualButtons virtual_buttons;
     ControllerPoseOffset pose_offset;
 };
 

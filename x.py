@@ -10,6 +10,7 @@ import sys
 import tarfile
 import zipfile
 import hashlib
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -21,6 +22,7 @@ PROTOCOL_VERSION_FILE = ROOT / "PROTOCOL_VERSION"
 GUI_PROJECT = ROOT / "src" / "OpenFinger.Control" / "OpenFinger.Control.csproj"
 GUI_DIR = GUI_PROJECT.parent
 DRIVER_ROOT = ROOT / "src" / "drivers" / "openfinger"
+INSTALLER_SCRIPT = ROOT / "installer" / "OpenFinger.iss"
 FIRMWARE_TARGETS: dict[str, tuple[Path, str]] = {
     "esp32c3": (ROOT / "src" / "firmware" / "esp32c3", "esp32-c3-dev-module"),
     "esp32s3": (ROOT / "src" / "firmware" / "esp32s3", "esp32-s3-devkitc-1"),
@@ -47,21 +49,14 @@ PROCESS_NAMES = (
     "openfinger_adc_monitor.exe",
     "openfinger_firmware_tool.exe",
 )
-STEAMVR_PACKAGE_NATIVE_TOOLS = (
-    "openfinger_service.exe",
-    "openfinger_controller_bridge.exe",
-    "openfinger_adc_monitor.exe",
-    "openfinger_firmware_tool.exe",
-)
-BRIDGE_RUNTIME_FILES = (
-    "actions.json",
-    "bindings_oculus_touch.json",
-    "openfinger_bridge.vrmanifest",
-)
-PACKAGE_EXCLUDE_SUFFIXES = (".pdb", ".ilk", ".exp", ".lib")
-PACKAGE_EXCLUDE_DIRS = {"obj", ".vs", "DesignTimeBuild", "FileContentIndex", "CopilotIndices"}
+STEAMVR_PROCESS_NAMES = ("vrmonitor.exe", "vrserver.exe")
 
-PROCESS_NAMES = ("vrmonitor.exe", "vrserver.exe")
+
+@dataclass(frozen=True)
+class PackageVariant:
+    distribution: str
+    self_contained: bool
+    runtime: str
 
 
 def read_text_file(path: Path, fallback: str) -> str:
@@ -77,6 +72,62 @@ def version() -> str:
 
 def protocol_version() -> int:
     return int(read_text_file(PROTOCOL_VERSION_FILE, "2"))
+
+
+def product_version_tuple() -> tuple[str, str, str]:
+    normalized = version()
+    parts = normalized.split("-", 1)[0].split(".")
+    while len(parts) < 3:
+        parts.append("0")
+    return parts[0], parts[1], parts[2]
+
+
+def msbuild_version_args() -> list[str]:
+    major, minor, patch = product_version_tuple()
+    four_part = f"{major}.{minor}.{patch}.0"
+    informational = version()
+    return [
+        f"/p:Version={informational}",
+        f"/p:AssemblyVersion={four_part}",
+        f"/p:FileVersion={four_part}",
+        f"/p:InformationalVersion={informational}",
+    ]
+
+
+def runtime_mode_label(self_contained: bool) -> str:
+    return "self-contained" if self_contained else "dotnet"
+
+
+def runtime_mode_display(self_contained: bool) -> str:
+    return "自包含 .NET 版本" if self_contained else "依赖已安装 .NET 运行库"
+
+
+def portable_package_name(runtime: str, self_contained: bool) -> str:
+    return f"OpenFinger-{version()}-{runtime}-{runtime_mode_label(self_contained)}"
+
+
+def installer_package_name(runtime: str, self_contained: bool) -> str:
+    return f"OpenFingerSetup-{version()}-{runtime}-{runtime_mode_label(self_contained)}"
+
+
+def should_include_distribution(requested: str, distribution: str) -> bool:
+    return requested == "all" or requested == distribution
+
+
+def iter_requested_runtime_modes(requested: str) -> list[bool]:
+    if requested == "all":
+        return [False, True]
+    return [requested == "self-contained"]
+
+
+def iter_requested_variants(args: argparse.Namespace) -> list[PackageVariant]:
+    variants: list[PackageVariant] = []
+    for self_contained in iter_requested_runtime_modes(args.runtime_mode):
+        if should_include_distribution(args.distribution, "portable"):
+            variants.append(PackageVariant("portable", self_contained, args.runtime))
+        if should_include_distribution(args.distribution, "installer"):
+            variants.append(PackageVariant("installer", self_contained, args.runtime))
+    return variants
 
 
 def q(args: list[str]) -> str:
@@ -165,7 +216,7 @@ def build_gui(args: argparse.Namespace) -> None:
     generate_version_files()
     if not GUI_PROJECT.exists():
         raise FileNotFoundError(f"missing GUI project: {GUI_PROJECT}")
-    run_process(["dotnet", "build", str(GUI_PROJECT), "-c", args.config])
+    run_process(["dotnet", "build", str(GUI_PROJECT), "-c", args.config, *msbuild_version_args()])
 
 
 def build_firmware_targets(board: str, flash: bool = False, port: str | None = None) -> None:
@@ -277,14 +328,15 @@ def copy_file_if_exists(src: Path, dst: Path, required: bool = False) -> bool:
     return True
 
 
-def publish_gui(config: str, out_dir: Path, runtime: str) -> None:
+def publish_gui(config: str, out_dir: Path, runtime: str, self_contained: bool) -> None:
     remove_tree(out_dir)
     run_process([
         "dotnet", "publish", str(GUI_PROJECT),
         "-c", config,
         "-r", runtime,
-        "--self-contained", "false",
+        "--self-contained", "true" if self_contained else "false",
         "-o", str(out_dir),
+        *msbuild_version_args(),
     ])
 
 
@@ -350,36 +402,41 @@ def write_manifest(out_root: Path, package_name: str, runtime: str) -> None:
     (out_root / "package-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
-def create_zip_archive(src_dir: Path, archive: Path) -> None:
-    if archive.exists():
-        archive.unlink()
-    with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
-        for file in sorted(p for p in src_dir.rglob("*") if p.is_file()):
-            zf.write(file, file.relative_to(src_dir.parent).as_posix())
+def cleanup_release_outputs(runtime: str) -> None:
+    if not DIST.exists():
+        return
+    version_prefix = f"OpenFinger-{version()}-{runtime}"
+    installer_prefix = f"OpenFingerSetup-{version()}-{runtime}"
+    checksum_name = f"OpenFinger-{version()}-checksums.sha256"
+    for path in DIST.iterdir():
+        if path.name == "release-notes.md" or path.name == checksum_name or path.name.startswith(version_prefix) or path.name.startswith(installer_prefix):
+            if path.is_dir():
+                remove_tree(path)
+            elif path.exists():
+                print(f"[x.py] remove {path.relative_to(ROOT) if path.is_relative_to(ROOT) else path}")
+                path.unlink()
 
 
-def create_tar_gz_archive(src_dir: Path, archive: Path) -> None:
-    if archive.exists():
-        archive.unlink()
-    with tarfile.open(archive, "w:gz") as tar:
-        tar.add(src_dir, arcname=src_dir.name)
+def resolve_iscc_executable() -> str:
+    candidates = [
+        shutil.which("iscc"),
+        shutil.which("ISCC"),
+        str(Path.home() / "AppData" / "Local" / "Programs" / "InnoSetup-Codex" / "ISCC.exe"),
+        r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe",
+        r"C:\Program Files\Inno Setup 6\ISCC.exe",
+    ]
+    for candidate in candidates:
+        if candidate and Path(candidate).exists():
+            return str(candidate)
+    raise FileNotFoundError(
+        "missing Inno Setup compiler (ISCC.exe). Install Inno Setup 6 or make ISCC.exe available on PATH."
+    )
 
 
-def command_package(args: argparse.Namespace) -> None:
-    if not args.skip_build:
-        command_build(args)
-
-    v = version()
-    runtime = args.runtime
-    package_name = f"OpenFinger-{v}-{runtime}"
+def prepare_portable_layout(args: argparse.Namespace, runtime: str, self_contained: bool) -> Path:
+    package_name = portable_package_name(runtime, self_contained)
     out_root = DIST / package_name
-    remove_tree(out_root)
-    out_root.mkdir(parents=True, exist_ok=True)
-
-    # OpenFinger.Control is the product entry point, so publish it directly at
-    # the package root. This keeps the GitHub asset usable after one extract:
-    # users can open the folder and run OpenFinger.Control.exe immediately.
-    publish_gui(args.config, out_root, runtime)
+    publish_gui(args.config, out_root, runtime, self_contained)
 
     native_dir = BUILD / args.config
     for name in PACKAGE_NATIVE_TOOLS:
@@ -399,39 +456,87 @@ def command_package(args: argparse.Namespace) -> None:
     copy_file_if_exists(ROOT / "LICENSE", out_root / "LICENSE")
 
     write_package_readme(out_root, package_name, runtime)
-    # Keep machine-oriented files out of the user-facing archive. CI still uses
-    # verify-package to validate the layout and critical files before upload.
+    return out_root
 
-    archives: list[Path] = []
-    formats = ["zip", "tar.gz"] if args.archive_format == "both" else [args.archive_format]
-    for fmt in formats:
-        archive = DIST / f"{package_name}.{fmt}"
-        if fmt == "zip":
-            create_zip_archive(out_root, archive)
-        elif fmt == "tar.gz":
-            create_tar_gz_archive(out_root, archive)
-        else:
-            raise ValueError(f"unknown archive format: {fmt}")
-        archives.append(archive)
-        print(f"[x.py] package: {archive}")
 
+def build_installer(source_dir: Path, runtime: str, self_contained: bool) -> Path:
+    if not INSTALLER_SCRIPT.exists():
+        raise FileNotFoundError(f"missing installer script: {INSTALLER_SCRIPT}")
+
+    output_name = installer_package_name(runtime, self_contained)
+    iscc = resolve_iscc_executable()
+    run_process([
+        iscc,
+        f"/DAppVersion={version()}",
+        f"/DSourceDir={source_dir}",
+        f"/DOutputDir={DIST}",
+        f"/DOutputBase={output_name}",
+        f"/DSetupIconFile={GUI_DIR / 'Assets' / 'OpenFinger.ico'}",
+        f"/DPackageMode={runtime_mode_label(self_contained)}",
+        str(INSTALLER_SCRIPT),
+    ])
+    return DIST / f"{output_name}.exe"
+
+
+def create_zip_archive(src_dir: Path, archive: Path) -> None:
+    if archive.exists():
+        archive.unlink()
+    with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
+        for file in sorted(p for p in src_dir.rglob("*") if p.is_file()):
+            zf.write(file, file.relative_to(src_dir.parent).as_posix())
+
+
+def create_tar_gz_archive(src_dir: Path, archive: Path) -> None:
+    if archive.exists():
+        archive.unlink()
+    with tarfile.open(archive, "w:gz") as tar:
+        tar.add(src_dir, arcname=src_dir.name)
+
+
+def write_release_asset_checksums(files: list[Path]) -> Path:
+    output = DIST / f"OpenFinger-{version()}-checksums.sha256"
+    lines: list[str] = []
+    for file in sorted(files):
+        digest = hashlib.sha256(file.read_bytes()).hexdigest()
+        line = f"{digest}  {file.name}\n"
+        lines.append(line)
+        file.with_name(f"{file.name}.sha256").write_text(line, encoding="utf-8")
+    output.write_text("".join(lines), encoding="utf-8")
+    return output
+
+
+def write_release_notes(files: list[Path], runtime: str) -> Path:
     release_notes = DIST / "release-notes.md"
+    summaries: list[str] = []
+    if any(file.name == f"{portable_package_name(runtime, False)}.zip" for file in files):
+        summaries.append(f"- 便携版（依赖 .NET 运行库）：`{portable_package_name(runtime, False)}.zip`")
+    if any(file.name == f"{portable_package_name(runtime, True)}.zip" for file in files):
+        summaries.append(f"- 便携版（自包含）：`{portable_package_name(runtime, True)}.zip`")
+    if any(file.name == f"{installer_package_name(runtime, False)}.exe" for file in files):
+        summaries.append(f"- 安装器（依赖 .NET 运行库）：`{installer_package_name(runtime, False)}.exe`")
+    if any(file.name == f"{installer_package_name(runtime, True)}.exe" for file in files):
+        summaries.append(f"- 安装器（自包含）：`{installer_package_name(runtime, True)}.exe`")
+    artifacts = "".join(f"- `{file.name}`\n" for file in sorted(files))
     release_notes.write_text(
-        f"""# OpenFinger {v}
+        f"""# OpenFinger {version()}
 
-- Runtime: `{runtime}`
-- Protocol: `v{protocol_version()}`
-- Entrypoint: `OpenFinger.Control.exe`
+本次发行包含以下 Windows x64 分发形式：
 
-Artifacts:
-""" + "".join(f"- `{a.name}`\n" for a in archives) + "\nThis release was generated by `python x.py package`.\n",
+{chr(10).join(summaries)}
+
+协议版本：v{protocol_version()}
+
+发行文件：
+{artifacts}
+
+自动更新仅使用便携版 zip；安装器用于首次安装或手动升级。
+""",
         encoding="utf-8",
     )
+    return release_notes
 
 
-def command_verify_package(args: argparse.Namespace) -> None:
-    package_name = f"OpenFinger-{version()}-{args.runtime}"
-    out_root = DIST / package_name
+def verify_portable_layout(out_root: Path) -> None:
     required = [
         out_root / "OpenFinger.Control.exe",
         out_root / "openfinger_service.exe",
@@ -453,7 +558,101 @@ def command_verify_package(args: argparse.Namespace) -> None:
     leaked = [path for path in forbidden_root_files if path.exists()]
     if leaked:
         raise FileExistsError("package contains internal files: " + ", ".join(str(p) for p in leaked))
-    print(f"[x.py] package verified: {out_root}")
+
+
+def command_package(args: argparse.Namespace) -> None:
+    generate_version_files()
+    if not args.skip_build:
+        command_build(args)
+
+    if args.distribution == "all" and args.runtime_mode == "all":
+        cleanup_release_outputs(args.runtime)
+
+    produced_assets: list[Path] = []
+    prepared_layouts: dict[tuple[str, bool], Path] = {}
+    runtime_modes = iter_requested_runtime_modes(args.runtime_mode)
+    need_any_layout = should_include_distribution(args.distribution, "portable") or should_include_distribution(args.distribution, "installer")
+    if need_any_layout:
+        for self_contained in runtime_modes:
+            out_root = prepare_portable_layout(args, args.runtime, self_contained)
+            prepared_layouts[(args.runtime, self_contained)] = out_root
+            verify_portable_layout(out_root)
+
+            if should_include_distribution(args.distribution, "portable"):
+                formats = ["zip", "tar.gz"] if args.archive_format == "both" else [args.archive_format]
+                for fmt in formats:
+                    archive = DIST / f"{portable_package_name(args.runtime, self_contained)}.{fmt}"
+                    if fmt == "zip":
+                        create_zip_archive(out_root, archive)
+                    elif fmt == "tar.gz":
+                        create_tar_gz_archive(out_root, archive)
+                    else:
+                        raise ValueError(f"unknown archive format: {fmt}")
+                    produced_assets.append(archive)
+                    print(f"[x.py] package: {archive}")
+
+            if should_include_distribution(args.distribution, "installer"):
+                installer = build_installer(out_root, args.runtime, self_contained)
+                produced_assets.append(installer)
+                print(f"[x.py] package: {installer}")
+
+    if not produced_assets:
+        raise RuntimeError("no release assets were produced; check --distribution and --runtime-mode arguments")
+
+    checksum_file = write_release_asset_checksums(produced_assets)
+    release_notes = write_release_notes(produced_assets, args.runtime)
+    print(f"[x.py] package: {checksum_file}")
+    print(f"[x.py] package: {release_notes}")
+
+
+def command_verify_package(args: argparse.Namespace) -> None:
+    verified: list[str] = []
+    release_assets: list[Path] = []
+    for self_contained in iter_requested_runtime_modes(args.runtime_mode):
+        if should_include_distribution(args.distribution, "portable") or should_include_distribution(args.distribution, "installer"):
+            out_root = DIST / portable_package_name(args.runtime, self_contained)
+            verify_portable_layout(out_root)
+            verified.append(str(out_root))
+        if should_include_distribution(args.distribution, "portable"):
+            formats = ["zip", "tar.gz"] if args.archive_format == "both" else [args.archive_format]
+            for fmt in formats:
+                archive = DIST / f"{portable_package_name(args.runtime, self_contained)}.{fmt}"
+                if not archive.exists():
+                    raise FileNotFoundError(f"missing portable archive: {archive}")
+                verified.append(str(archive))
+                release_assets.append(archive)
+        if should_include_distribution(args.distribution, "installer"):
+            installer = DIST / f"{installer_package_name(args.runtime, self_contained)}.exe"
+            if not installer.exists():
+                raise FileNotFoundError(f"missing installer asset: {installer}")
+            verified.append(str(installer))
+            release_assets.append(installer)
+
+    checksum_file = DIST / f"OpenFinger-{version()}-checksums.sha256"
+    if args.distribution == "all" or args.runtime_mode == "all":
+        if not checksum_file.exists():
+            raise FileNotFoundError(f"missing checksum file: {checksum_file}")
+        verified.append(str(checksum_file))
+        checksum_lines = {
+            line.strip()
+            for line in checksum_file.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        }
+        for asset in sorted(release_assets):
+            digest = hashlib.sha256(asset.read_bytes()).hexdigest()
+            expected_line = f"{digest}  {asset.name}"
+            if expected_line not in checksum_lines:
+                raise ValueError(f"checksum manifest mismatch for asset: {asset}")
+            individual_checksum = asset.with_name(f"{asset.name}.sha256")
+            if not individual_checksum.exists():
+                raise FileNotFoundError(f"missing individual checksum file: {individual_checksum}")
+            actual_line = individual_checksum.read_text(encoding="utf-8").strip()
+            if actual_line != expected_line:
+                raise ValueError(f"individual checksum mismatch for asset: {asset}")
+            verified.append(str(individual_checksum))
+    print("[x.py] package verified:")
+    for item in verified:
+        print(f"  - {item}")
 
 def command_run(args: argparse.Namespace) -> None:
     generate_version_files()
@@ -490,6 +689,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--flash", action="store_true", help="upload firmware after build")
     parser.add_argument("--port", help="serial port for firmware flashing, for example COM5")
     parser.add_argument("--runtime", default="win-x64", help=".NET runtime identifier used by package/publish, for example win-x64")
+    parser.add_argument("--distribution", default="portable", choices=["portable", "installer", "all"], help="distribution format to build")
+    parser.add_argument("--runtime-mode", default="dotnet", choices=["dotnet", "self-contained", "all"], help="build framework-dependent, self-contained, or both variants")
     parser.add_argument("--archive-format", default="zip", choices=["zip", "tar.gz", "both"], help="package archive format")
     parser.add_argument("--skip-build", action="store_true", help="package existing build outputs without rebuilding")
     return parser

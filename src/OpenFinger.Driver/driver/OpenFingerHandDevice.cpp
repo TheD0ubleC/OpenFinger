@@ -19,7 +19,6 @@ namespace
 {
 
 constexpr const char* kInputProfilePath = "{openfinger}/input/openfinger_profile.json";
-constexpr const char* kControllerType = "knuckles";
 constexpr const char* kSettingsSection = "driver_openfinger";
 constexpr const char* kSettingsForwardControllerInputs = "forward_controller_inputs";
 constexpr const char* kSettingsOpenFingerTestWindow = "open_finger_test_window";
@@ -64,6 +63,82 @@ const char* RenderModelName(HandSide side)
 {
     (void)side;
     return "";
+}
+
+const SteamVrConfig::ControllerStyleConfig& ControllerStyleFor(const AppConfig& config, HandSide side)
+{
+    return side == HandSide::Left ? config.steamvr.left_style : config.steamvr.right_style;
+}
+
+struct ResolvedControllerStyle
+{
+    std::string display_name;
+    std::string controller_type;
+    std::string render_model;
+    std::string input_profile_path = kInputProfilePath;
+};
+
+ResolvedControllerStyle ResolveControllerStyle(const AppConfig& config, HandSide side)
+{
+    const auto& style = ControllerStyleFor(config, side);
+    const std::string style_id = style.style_id.empty() ? "knuckles" : style.style_id;
+    ResolvedControllerStyle resolved;
+    resolved.display_name = side == HandSide::Left ? "OpenFinger Left Hand" : "OpenFinger Right Hand";
+
+    if (style_id == "oculus_touch"
+        || style_id == "quest_1"
+        || style_id == "quest_2"
+        || style_id == "quest_3"
+        || style_id == "quest_3s"
+        || style_id == "quest_pro"
+        || style_id == "rift_s")
+    {
+        resolved.controller_type = "oculus_touch";
+        resolved.display_name = side == HandSide::Left ? "OpenFinger Quest Left" : "OpenFinger Quest Right";
+    }
+    else if (style_id == "vive_controller")
+    {
+        resolved.controller_type = "vive_controller";
+        resolved.display_name = side == HandSide::Left ? "OpenFinger Vive Left" : "OpenFinger Vive Right";
+    }
+    else if (style_id == "vive_tracker"
+        || style_id == "vive_tracker_2018"
+        || style_id == "vive_tracker_3"
+        || style_id == "vive_tracker_ultimate")
+    {
+        resolved.controller_type = "vive_tracker";
+        resolved.display_name = side == HandSide::Left ? "OpenFinger Tracker Left" : "OpenFinger Tracker Right";
+    }
+    else if (style_id == "pico_controller"
+        || style_id == "pico_neo3"
+        || style_id == "pico_neo3_link"
+        || style_id == "pico_4"
+        || style_id == "pico_4_ultra")
+    {
+        resolved.controller_type = "pico_controller";
+        resolved.display_name = side == HandSide::Left ? "OpenFinger Pico Left" : "OpenFinger Pico Right";
+    }
+    else
+    {
+        resolved.controller_type = "knuckles";
+    }
+
+    if (!style.controller_type_override.empty())
+    {
+        resolved.controller_type = style.controller_type_override;
+    }
+
+    if (!style.render_model_override.empty())
+    {
+        resolved.render_model = style.render_model_override;
+    }
+
+    if (!style.display_name.empty())
+    {
+        resolved.display_name = style.display_name;
+    }
+
+    return resolved;
 }
 
 vr::ETrackedControllerRole ControllerRole(HandSide side)
@@ -264,7 +339,7 @@ OpenFingerHandDevice::OpenFingerHandDevice(
       controller_receiver_(controller_receiver)
 {
     serial_number_ = side_ == HandSide::Left ? "OpenFinger-Left-001" : "OpenFinger-Right-001";
-    model_number_ = side_ == HandSide::Left ? "OpenFinger Left Hand" : "OpenFinger Right Hand";
+    model_number_ = ResolveControllerStyle(config_, side_).display_name;
 }
 
 OpenFingerHandDevice::~OpenFingerHandDevice()
@@ -277,12 +352,13 @@ vr::EVRInitError OpenFingerHandDevice::Activate(uint32_t object_id)
     device_index_ = object_id;
 
     const vr::PropertyContainerHandle_t container = vr::VRProperties()->TrackedDeviceToPropertyContainer(device_index_);
+    const auto style = ResolveControllerStyle(config_, side_);
     vr::VRProperties()->SetStringProperty(container, vr::Prop_ModelNumber_String, model_number_.c_str());
     vr::VRProperties()->SetStringProperty(container, vr::Prop_ManufacturerName_String, "OpenFinger");
     vr::VRProperties()->SetStringProperty(container, vr::Prop_SerialNumber_String, serial_number_.c_str());
-    vr::VRProperties()->SetStringProperty(container, vr::Prop_InputProfilePath_String, kInputProfilePath);
-    vr::VRProperties()->SetStringProperty(container, vr::Prop_ControllerType_String, kControllerType);
-    vr::VRProperties()->SetStringProperty(container, vr::Prop_RenderModelName_String, RenderModelName(side_));
+    vr::VRProperties()->SetStringProperty(container, vr::Prop_InputProfilePath_String, style.input_profile_path.c_str());
+    vr::VRProperties()->SetStringProperty(container, vr::Prop_ControllerType_String, style.controller_type.c_str());
+    vr::VRProperties()->SetStringProperty(container, vr::Prop_RenderModelName_String, style.render_model.empty() ? RenderModelName(side_) : style.render_model.c_str());
     vr::VRProperties()->SetStringProperty(
         container,
         vr::Prop_RegisteredDeviceType_String,
@@ -344,11 +420,13 @@ vr::DriverPose_t OpenFingerHandDevice::GetPose()
 {
     vr::DriverPose_t pose {};
     ControllerPoseOffset pose_offset;
+    const auto runtime_frame_fresh_for = std::chrono::milliseconds(kRuntimePresenceHoldMs);
 
     if (runtime_receiver_ != nullptr)
     {
         RuntimeFrame frame;
-        if (runtime_receiver_->CopyLatestFrame(&frame))
+        if (runtime_receiver_->CopyLatestFrame(&frame)
+            && runtime_receiver_->IsLatestFrameFresh(runtime_frame_fresh_for))
         {
             const HandRuntimeState& hand_state = side_ == HandSide::Left ? frame.left : frame.right;
             pose_offset = hand_state.pose_offset;
@@ -846,11 +924,14 @@ void OpenFingerHandDevice::SubmitCurrentState()
     }
 
     RuntimeFrame frame;
+    const auto runtime_frame_fresh_for = std::chrono::milliseconds(kRuntimePresenceHoldMs);
     const bool has_frame = runtime_receiver_ != nullptr && runtime_receiver_->CopyLatestFrame(&frame);
+    const bool frame_fresh = has_frame && runtime_receiver_ != nullptr && runtime_receiver_->IsLatestFrameFresh(runtime_frame_fresh_for);
+    const bool use_frame = has_frame && frame_fresh;
     RuntimeFrame empty_frame;
     empty_frame.left.side = HandSide::Left;
     empty_frame.right.side = HandSide::Right;
-    const HandRuntimeState& hand_state = !has_frame
+    const HandRuntimeState& hand_state = !use_frame
         ? (side_ == HandSide::Left ? empty_frame.left : empty_frame.right)
         : (side_ == HandSide::Left ? frame.left : frame.right);
 
@@ -868,7 +949,7 @@ void OpenFingerHandDevice::SubmitCurrentState()
     }
 
     bool should_log_runtime = false;
-    if (has_frame && frame.seq != last_logged_runtime_seq_)
+    if (use_frame && frame.seq != last_logged_runtime_seq_)
     {
         if (hand_state.present != last_logged_runtime_present_)
         {
@@ -902,7 +983,7 @@ void OpenFingerHandDevice::SubmitCurrentState()
             bends[4]);
     }
 
-    if (has_frame)
+    if (use_frame)
     {
         if (hand_state.present)
         {
@@ -932,6 +1013,15 @@ void OpenFingerHandDevice::SubmitCurrentState()
     SubmitScalarComponent(kInput_RingCurl, effective_bends[3]);
     SubmitScalarComponent(kInput_PinkyCurl, effective_bends[4]);
 
+    const auto now = std::chrono::steady_clock::now();
+    const bool forwarding_enabled = RefreshControllerForwardingSetting();
+    ForwardedControllerState forwarded_state {};
+    const bool has_forwarded_state = controller_receiver_ != nullptr && controller_receiver_->CopyLatestState(side_, &forwarded_state);
+    const bool forwarded_usable = forwarding_enabled
+        && has_forwarded_state
+        && forwarded_state.connected
+        && IsForwardedControllerStateFresh(forwarded_state, now, kForwardedControllerFreshFor);
+
     const bool joystick_usable = hand_state.present && !hand_state.stale && hand_state.joystick_available;
     const bool joystick_axis_enabled = joystick_usable && hand_state.joystick_axis_mode == 1;
     const float joystick_x = joystick_axis_enabled ? std::clamp(hand_state.joystick_x, -1.0f, 1.0f) : 0.0f;
@@ -943,25 +1033,52 @@ void OpenFingerHandDevice::SubmitCurrentState()
     const bool b_click = joystick_usable && hand_state.joystick_click && hand_state.joystick_click_action == 3;
     const bool grip_click = joystick_usable && hand_state.joystick_click && hand_state.joystick_click_action == 4;
     const bool system_click = joystick_usable && hand_state.joystick_click && hand_state.joystick_click_action == 5;
-    const float grip_value = grip_click ? 1.0f : 0.0f;
+    const bool runtime_trigger_click = hand_state.virtual_buttons.trigger_click;
+    const bool runtime_grip_click = hand_state.virtual_buttons.grip_click || grip_click;
+    const bool runtime_primary_click = hand_state.virtual_buttons.primary_click || a_click;
+    const bool runtime_secondary_click = hand_state.virtual_buttons.secondary_click || b_click;
+    const bool runtime_system_click = hand_state.virtual_buttons.system_click || system_click;
 
-    SubmitBooleanComponent(kInput_SystemClick, system_click);
-    SubmitBooleanComponent(kInput_SystemTouch, system_click);
-    SubmitBooleanComponent(kInput_AClick, a_click);
-    SubmitBooleanComponent(kInput_ATouch, a_click);
-    SubmitBooleanComponent(kInput_BClick, b_click);
-    SubmitBooleanComponent(kInput_BTouch, b_click);
-    SubmitScalarComponent(kInput_TriggerValue, 0.0f);
-    SubmitBooleanComponent(kInput_TriggerClick, false);
-    SubmitBooleanComponent(kInput_TriggerTouch, false);
-    SubmitScalarComponent(kInput_GripValue, grip_value);
-    SubmitScalarComponent(kInput_GripForce, grip_value);
-    SubmitBooleanComponent(kInput_GripClick, grip_click);
-    SubmitBooleanComponent(kInput_GripTouch, grip_click);
-    SubmitScalarComponent(kInput_JoystickX, joystick_x);
-    SubmitScalarComponent(kInput_JoystickY, joystick_y);
-    SubmitBooleanComponent(kInput_JoystickClick, joystick_click);
-    SubmitBooleanComponent(kInput_JoystickTouch, joystick_touch);
+    const float forwarded_trigger_value = forwarded_usable ? std::clamp(forwarded_state.trigger_value, 0.0f, 1.0f) : 0.0f;
+    const float forwarded_grip_value = forwarded_usable ? std::clamp(forwarded_state.grip_value, 0.0f, 1.0f) : 0.0f;
+    const float final_trigger_value = std::max(runtime_trigger_click ? 1.0f : 0.0f, forwarded_trigger_value);
+    const float final_grip_value = std::max(runtime_grip_click ? 1.0f : 0.0f, forwarded_grip_value);
+    const bool final_system_click = runtime_system_click || (forwarded_usable && forwarded_state.system_click);
+    const bool final_system_touch = final_system_click || (forwarded_usable && forwarded_state.system_touch);
+    const bool final_primary_click = runtime_primary_click || (forwarded_usable && forwarded_state.a_click);
+    const bool final_primary_touch = final_primary_click || (forwarded_usable && forwarded_state.a_touch);
+    const bool final_secondary_click = runtime_secondary_click || (forwarded_usable && forwarded_state.b_click);
+    const bool final_secondary_touch = final_secondary_click || (forwarded_usable && forwarded_state.b_touch);
+    const bool final_trigger_click = runtime_trigger_click || (forwarded_usable && (forwarded_state.trigger_click || forwarded_trigger_value >= 0.75f));
+    const bool final_trigger_touch = final_trigger_click || (forwarded_usable && (forwarded_state.trigger_touch || forwarded_trigger_value >= 0.05f));
+    const bool final_grip_click = runtime_grip_click || (forwarded_usable && (forwarded_state.grip_click || forwarded_grip_value >= 0.75f));
+    const bool final_grip_touch = final_grip_click || (forwarded_usable && (forwarded_state.grip_touch || forwarded_grip_value >= 0.05f));
+    const float final_joystick_x = joystick_axis_enabled ? joystick_x : (forwarded_usable ? std::clamp(forwarded_state.joystick_x, -1.0f, 1.0f) : 0.0f);
+    const float final_joystick_y = joystick_axis_enabled ? joystick_y : (forwarded_usable ? std::clamp(forwarded_state.joystick_y, -1.0f, 1.0f) : 0.0f);
+    const bool final_joystick_click = joystick_click || (forwarded_usable && forwarded_state.joystick_click);
+    const bool final_joystick_touch = joystick_touch
+        || (forwarded_usable
+            && (forwarded_state.joystick_touch
+                || std::abs(forwarded_state.joystick_x) >= 0.15f
+                || std::abs(forwarded_state.joystick_y) >= 0.15f));
+
+    SubmitBooleanComponent(kInput_SystemClick, final_system_click);
+    SubmitBooleanComponent(kInput_SystemTouch, final_system_touch);
+    SubmitBooleanComponent(kInput_AClick, final_primary_click);
+    SubmitBooleanComponent(kInput_ATouch, final_primary_touch);
+    SubmitBooleanComponent(kInput_BClick, final_secondary_click);
+    SubmitBooleanComponent(kInput_BTouch, final_secondary_touch);
+    SubmitScalarComponent(kInput_TriggerValue, final_trigger_value);
+    SubmitBooleanComponent(kInput_TriggerClick, final_trigger_click);
+    SubmitBooleanComponent(kInput_TriggerTouch, final_trigger_touch);
+    SubmitScalarComponent(kInput_GripValue, final_grip_value);
+    SubmitScalarComponent(kInput_GripForce, final_grip_value);
+    SubmitBooleanComponent(kInput_GripClick, final_grip_click);
+    SubmitBooleanComponent(kInput_GripTouch, final_grip_touch);
+    SubmitScalarComponent(kInput_JoystickX, final_joystick_x);
+    SubmitScalarComponent(kInput_JoystickY, final_joystick_y);
+    SubmitBooleanComponent(kInput_JoystickClick, final_joystick_click);
+    SubmitBooleanComponent(kInput_JoystickTouch, final_joystick_touch);
 
     vr::VRBoneTransform_t without_controller[SkeletonPoseBuilder::kBoneCount];
     vr::VRBoneTransform_t with_controller[SkeletonPoseBuilder::kBoneCount];

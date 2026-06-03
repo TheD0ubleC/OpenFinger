@@ -46,9 +46,6 @@ openfinger_service.exe
   Named Pipe
     GUI RPC
 
-  UDP out 127.0.0.1:39003
-    OFRUNTIME
-
 openfinger_controller_bridge.exe
   OpenVR input
   UDP out 127.0.0.1:39002
@@ -77,11 +74,11 @@ Driver 只消费本机运行时流。串口、Wi-Fi 配置、固件版本检查�
 
 这样用户仍然可以用原控制器移动、点击、抓取。OpenFinger 负责手指 skeleton。
 
-### GUI 不当核心依赖
+### Control 接管运行时发布
 
-GUI 可以退出，Service 和 driver 仍应继续工作。GUI 是控制台，不是运行时必需组件。
+OpenFinger.Control 负责把最终运行时帧发布给 driver。只要 Control 进程还活着，哪怕只是隐藏到托盘，SteamVR 里的设备都可以保持连接。
 
-关闭窗口时最小化到托盘，符合这个模型。直接退出 GUI 不应该停止正在运行的本地会话，除非用户明确选择停止。
+真正退出 Control 后，driver 会在短暂 hold 后把 OpenFinger 设备标成丢失状态。这样能保证“只开 SteamVR、不打开 OpenFinger”时不会留下假在线设备。
 
 ## 取舍
 
@@ -109,7 +106,7 @@ GUI 可以退出，Service 和 driver 仍应继续工作。GUI 是控制台，�
 - 固件上报的角色可能和 GUI 选择不一致。写配置后要重新读状态确认。
 - Driver 可能在 SteamVR 缓存旧包。修复 driver 后通常需要重启 SteamVR。
 - 6DoF 偏移属于运行时校准，不应该写进固件。
-- `OFRUNTIME` 是本机内部协议。Service 和 driver 应当来自同一个发布包。
+- `OFRUNTIME` 是本机内部协议。Control、driver 和 bridge 应当来自同一个发布包。
 
 ## 备注
 

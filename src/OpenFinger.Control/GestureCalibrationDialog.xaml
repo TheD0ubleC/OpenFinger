@@ -1,0 +1,47 @@
+<Window x:Class="OpenFinger.Control.GestureCalibrationDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="手势校准"
+        Width="520"
+        Height="340"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{DynamicResource BrushBg}"
+        FontFamily="Microsoft YaHei UI, Segoe UI, sans-serif"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        Icon="Assets/OpenFinger.png">
+    <Border Margin="20" Style="{StaticResource CardBorderStyle}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel>
+                <TextBlock x:Name="TitleTextBlock" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource BrushText}" />
+                <TextBlock x:Name="SubtitleTextBlock" Margin="0,10,0,0" Foreground="{DynamicResource BrushSubText}" TextWrapping="Wrap" />
+            </StackPanel>
+
+            <Border Grid.Row="1" Margin="0,22,0,0" Background="{DynamicResource BrushPanelAlt}" BorderBrush="{DynamicResource BrushBorder}" BorderThickness="1" CornerRadius="14" Padding="16,14">
+                <StackPanel>
+                    <TextBlock x:Name="StepTextBlock" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource BrushText}" />
+                    <TextBlock x:Name="HintTextBlock" Margin="0,10,0,0" Foreground="{DynamicResource BrushSubText}" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <StackPanel Grid.Row="2" Margin="0,20,0,0">
+                <ProgressBar x:Name="SamplingProgressBar" Height="10" Minimum="0" Maximum="100" Value="0" />
+                <TextBlock x:Name="LiveTextBlock" Margin="0,12,0,0" Foreground="{DynamicResource BrushSubText}" TextWrapping="Wrap" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                <Button x:Name="CancelButton" Style="{StaticResource SecondaryButtonStyle}" Width="110" Content="取消" Click="OnCancelClick" />
+                <Button x:Name="StartButton" Style="{StaticResource PrimaryButtonStyle}" Width="128" Margin="12,0,0,0" Content="开始" Click="OnStartClick" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

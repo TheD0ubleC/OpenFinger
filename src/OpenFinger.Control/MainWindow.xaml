@@ -6,10 +6,10 @@
         xmlns:pages="clr-namespace:OpenFinger.Control.Pages"
         mc:Ignorable="d"
         Title="OpenFinger"
-        Width="1280"
-        Height="820"
-        MinWidth="1080"
-        MinHeight="720"
+        Width="1360"
+        Height="900"
+        MinWidth="1100"
+        MinHeight="760"
         Background="{DynamicResource BrushBg}"
         FontFamily="Microsoft YaHei UI, Segoe UI, sans-serif"
         FontSize="14"
@@ -23,7 +23,8 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <Border Grid.Column="0"
+        <Border x:Name="SidebarBorder"
+                Grid.Column="0"
                 Background="{DynamicResource BrushPanel}"
                 BorderBrush="{DynamicResource BrushBorder}"
                 BorderThickness="0,0,1,0"
@@ -36,16 +37,29 @@
                 </Grid.RowDefinitions>
 
                 <Border Style="{StaticResource CardBorderStyle}"
-        Width="190"
-        Height="58"
-        Padding="10">
-
+                        Width="190"
+                        Height="58"
+                        Padding="0">
                     <Grid>
-                        <TextBlock FontSize="26"
-                   FontWeight="Bold"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"><Run Text="Open"
-                                                   Foreground="{DynamicResource BrushText}" /><Run Text="Finger"><Run.Foreground><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#FF8585" Offset="0" /><GradientStop Color="#F472B6" Offset="0.35" /><GradientStop Color="#C084FC" Offset="0.68" /><GradientStop Color="#635BFF" Offset="1" /></LinearGradientBrush></Run.Foreground></Run></TextBlock>
+                        <Border x:Name="BrandWordmarkViewport"
+                                Width="142"
+                                Height="38"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                ClipToBounds="True"
+                                Cursor="Hand"
+                                SnapsToDevicePixels="True"
+                                PreviewMouseLeftButtonDown="OnBrandWordmarkPreviewMouseLeftButtonDown">
+                            <Image x:Name="BrandWordmarkImage"
+                                   Source="Assets/OpenFingerTitle.png"
+                                   Width="175"
+                                   Height="38"
+                                   Stretch="Fill"
+                                   HorizontalAlignment="Left"
+                                   Margin="-31,0,0,0"
+                                   SnapsToDevicePixels="True"
+                                   RenderOptions.BitmapScalingMode="HighQuality" />
+                        </Border>
                     </Grid>
                 </Border>
 
@@ -55,6 +69,7 @@
                     <Button x:Name="DeviceTabButton" Style="{StaticResource NavButtonStyle}" Click="OnDeviceTabClick" Content="设备" />
                     <Button x:Name="FirmwareTabButton" Style="{StaticResource NavButtonStyle}" Click="OnFirmwareTabClick" Content="固件刷写" />
                     <Button x:Name="CalibrationTabButton" Style="{StaticResource NavButtonStyle}" Click="OnCalibrationTabClick" Content="校准与设置" />
+                    <Button x:Name="GestureTabButton" Style="{StaticResource NavButtonStyle}" Click="OnGestureTabClick" Content="手势" />
                     <Button x:Name="StatusTabButton" Style="{StaticResource NavButtonStyle}" Click="OnStatusTabClick" Content="状态" />
                     <Button x:Name="DiagnosticsTabButton" Style="{StaticResource NavButtonStyle}" Click="OnDiagnosticsTabClick" Content="SteamVR" />
                     <Button x:Name="SettingsTabButton" Style="{StaticResource NavButtonStyle}" Click="OnSettingsTabClick" Content="设置" />
@@ -153,11 +168,67 @@
                 <pages:DevicesPage x:Name="DevicesPageView" Visibility="Collapsed" />
                 <pages:FirmwarePage x:Name="FirmwarePageView" Visibility="Collapsed" />
                 <pages:CalibrationPage x:Name="CalibrationPageView" Visibility="Collapsed" />
+                <pages:GesturePage x:Name="GesturePageView" Visibility="Collapsed" />
                 <pages:StatusPage x:Name="StatusPageView" Visibility="Collapsed" />
                 <pages:LogPage x:Name="DiagnosticsPageView" Visibility="Collapsed" />
                 <pages:SettingsPage x:Name="SettingsPageView" Visibility="Collapsed" />
                 <pages:AboutPage x:Name="AboutPageView" Visibility="Collapsed" />
             </Grid>
+        </Grid>
+
+        <Grid x:Name="StartupIntroOverlay"
+              Grid.ColumnSpan="2"
+              Panel.ZIndex="40"
+              Visibility="Visible"
+              Opacity="1"
+              IsHitTestVisible="False">
+            <Border x:Name="StartupIntroBackground"
+                    Background="{DynamicResource BrushBg}" />
+            <Canvas x:Name="StartupIntroCanvas">
+                <Grid x:Name="StartupIntroLogoWrap"
+                      Width="960"
+                      Height="208"
+                      Opacity="0"
+                      RenderTransformOrigin="0,0">
+                    <Grid.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform x:Name="StartupIntroLogoScale" ScaleX="1" ScaleY="1" />
+                            <TranslateTransform x:Name="StartupIntroLogoTranslate" X="0" Y="0" />
+                        </TransformGroup>
+                    </Grid.RenderTransform>
+
+                    <Grid ClipToBounds="True">
+                        <Image x:Name="StartupIntroLogoImage"
+                               Source="Assets/OpenFingerTitle.png"
+                               Stretch="Fill"
+                               RenderOptions.BitmapScalingMode="HighQuality" />
+                        <Border x:Name="StartupIntroRevealEdge"
+                                Width="36"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Stretch"
+                                Margin="-18,16,0,16"
+                                Opacity="0"
+                                CornerRadius="999">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                                    <GradientStop Color="#00FFFFFF" Offset="0" />
+                                    <GradientStop Color="#B8FFFFFF" Offset="0.48" />
+                                    <GradientStop Color="#00FFFFFF" Offset="1" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.Effect>
+                                <BlurEffect Radius="0.4" />
+                            </Border.Effect>
+                            <Border.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform x:Name="StartupIntroRevealEdgeScale" ScaleY="1" />
+                                    <TranslateTransform x:Name="StartupIntroRevealEdgeTranslate" X="0" Y="0" />
+                                </TransformGroup>
+                            </Border.RenderTransform>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Canvas>
         </Grid>
     </Grid>
 </Window>

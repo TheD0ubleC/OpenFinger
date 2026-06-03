@@ -31,7 +31,8 @@ public partial class MainWindow
     {
         Device,
         Flash,
-        Driver
+        Driver,
+        Update
     }
 
     public void ConfigureStartupMode(bool startHiddenOnLaunch)
@@ -237,6 +238,9 @@ public partial class MainWindow
             case UiPageCatalog.Calibration:
                 NavigateToCalibration();
                 break;
+            case UiPageCatalog.Gestures:
+                NavigateToGestures();
+                break;
             case UiPageCatalog.SteamVr:
                 NavigateToDiagnostics();
                 break;
@@ -285,6 +289,11 @@ public partial class MainWindow
         if (ReferenceEquals(activePage, CalibrationPageView))
         {
             return UiPageCatalog.Calibration;
+        }
+
+        if (ReferenceEquals(activePage, GesturePageView))
+        {
+            return UiPageCatalog.Gestures;
         }
 
         if (ReferenceEquals(activePage, DiagnosticsPageView))
@@ -457,6 +466,9 @@ public partial class MainWindow
             case UiPageCatalog.Calibration:
                 NavigateToCalibration();
                 break;
+            case UiPageCatalog.Gestures:
+                NavigateToGestures();
+                break;
             case UiPageCatalog.SteamVr:
                 NavigateToDiagnostics();
                 break;
@@ -495,6 +507,11 @@ public partial class MainWindow
         }
 
         if (kind == ClientNotificationKind.Driver && !_config.Ui.Notifications.DriverResults)
+        {
+            return;
+        }
+
+        if (kind == ClientNotificationKind.Update && !_config.Ui.Notifications.UpdateResults)
         {
             return;
         }
@@ -759,6 +776,22 @@ public partial class MainWindow
             EnableDeviceNotifications = _config.Ui.Notifications.DeviceEvents,
             EnableFlashNotifications = _config.Ui.Notifications.FlashResults,
             EnableDriverNotifications = _config.Ui.Notifications.DriverResults,
+            EnableUpdateNotifications = _config.Ui.Notifications.UpdateResults,
+            CheckUpdatesOnStartup = _config.Ui.Updates.CheckOnStartup,
+            PromptUpdateWhenAvailable = _config.Ui.Updates.PromptWhenAvailable,
+            UpdateBusy = _updateCheckBusy || _updateInstallBusy,
+            HasUpdateAvailable = _lastUpdateCheckResult?.HasUpdate == true,
+            CurrentVersion = AppUpdateService.GetCurrentVersionText(),
+            LatestVersion = string.IsNullOrWhiteSpace(_lastUpdateCheckResult?.LatestVersion)
+                ? "--"
+                : _lastUpdateCheckResult!.LatestVersion,
+            LatestPublishedText = BuildLatestPublishedText(),
+            LastCheckedText = BuildLastCheckedText(),
+            IgnoredVersion = BuildIgnoredVersionText(),
+            UpdateStatus = BuildUpdateStatusText(),
+            ReleaseAssetName = string.IsNullOrWhiteSpace(_lastUpdateCheckResult?.AssetName)
+                ? "--"
+                : _lastUpdateCheckResult!.AssetName,
             ThemeMode = _config.Ui.ThemeMode,
             ConfigPath = _configStore.PathValue
         };

@@ -608,7 +608,19 @@ std::string SerializeConfig(const AppConfig& config)
         << "  },\n"
         << "  \"steamvr\": {\n"
         << "    \"update_hz\": " << config.steamvr.update_hz << ",\n"
-        << "    \"stale_return_to_zero\": " << (config.steamvr.stale_return_to_zero ? "true" : "false") << "\n"
+        << "    \"stale_return_to_zero\": " << (config.steamvr.stale_return_to_zero ? "true" : "false") << ",\n"
+        << "    \"left_style\": {\n"
+        << "      \"style_id\": \"" << EscapeJson(config.steamvr.left_style.style_id) << "\",\n"
+        << "      \"display_name\": \"" << EscapeJson(config.steamvr.left_style.display_name) << "\",\n"
+        << "      \"controller_type_override\": \"" << EscapeJson(config.steamvr.left_style.controller_type_override) << "\",\n"
+        << "      \"render_model_override\": \"" << EscapeJson(config.steamvr.left_style.render_model_override) << "\"\n"
+        << "    },\n"
+        << "    \"right_style\": {\n"
+        << "      \"style_id\": \"" << EscapeJson(config.steamvr.right_style.style_id) << "\",\n"
+        << "      \"display_name\": \"" << EscapeJson(config.steamvr.right_style.display_name) << "\",\n"
+        << "      \"controller_type_override\": \"" << EscapeJson(config.steamvr.right_style.controller_type_override) << "\",\n"
+        << "      \"render_model_override\": \"" << EscapeJson(config.steamvr.right_style.render_model_override) << "\"\n"
+        << "    }\n"
         << "  },\n"
         << "  \"controller_bridge\": {\n"
         << "    \"udp_port\": " << config.controller_bridge.udp_port << "\n"
@@ -971,6 +983,23 @@ bool ConfigStore::LoadOrCreate(std::string* out_error)
     {
         ExtractInt(steamvr_text, "update_hz", &loaded.steamvr.update_hz);
         ExtractBool(steamvr_text, "stale_return_to_zero", &loaded.steamvr.stale_return_to_zero);
+        std::string left_style_text;
+        if (ExtractObjectSection(steamvr_text, "left_style", &left_style_text))
+        {
+            ExtractString(left_style_text, "style_id", &loaded.steamvr.left_style.style_id);
+            ExtractString(left_style_text, "display_name", &loaded.steamvr.left_style.display_name);
+            ExtractString(left_style_text, "controller_type_override", &loaded.steamvr.left_style.controller_type_override);
+            ExtractString(left_style_text, "render_model_override", &loaded.steamvr.left_style.render_model_override);
+        }
+
+        std::string right_style_text;
+        if (ExtractObjectSection(steamvr_text, "right_style", &right_style_text))
+        {
+            ExtractString(right_style_text, "style_id", &loaded.steamvr.right_style.style_id);
+            ExtractString(right_style_text, "display_name", &loaded.steamvr.right_style.display_name);
+            ExtractString(right_style_text, "controller_type_override", &loaded.steamvr.right_style.controller_type_override);
+            ExtractString(right_style_text, "render_model_override", &loaded.steamvr.right_style.render_model_override);
+        }
     }
 
     std::string controller_bridge_text;
@@ -1036,6 +1065,14 @@ bool ConfigStore::LoadOrCreate(std::string* out_error)
     loaded.service.raw_input_udp_port = ClampInt(loaded.service.raw_input_udp_port, 1024, 65535);
 
     loaded.steamvr.update_hz = ClampInt(loaded.steamvr.update_hz, 10, 240);
+    if (loaded.steamvr.left_style.style_id.empty())
+    {
+        loaded.steamvr.left_style.style_id = "knuckles";
+    }
+    if (loaded.steamvr.right_style.style_id.empty())
+    {
+        loaded.steamvr.right_style.style_id = "knuckles";
+    }
     loaded.controller_bridge.udp_port = ClampInt(loaded.controller_bridge.udp_port, 1024, 65535);
 
     ClampHandConfig(&loaded.hands.left, loaded.adc_max);
