@@ -3,7 +3,7 @@ namespace OpenFinger.Control;
 
 public static class OpenFingerVersion
 {
-    public const string Version = "0.1.0";
+    public const string Version = "0.2.0";
     public const int ProtocolVersion = 2;
-    public const string Display = "OpenFinger 0.1.0 / Protocol v2";
+    public const string Display = "OpenFinger 0.2.0 / Protocol v2";
 }

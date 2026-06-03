@@ -32,6 +32,25 @@ jobs:
         shell: pwsh
         run: choco install innosetup --no-progress -y
 
+      - name: Prepare espflash
+        shell: pwsh
+        run: |
+          $version = '4.4.0'
+          $asset = 'espflash-x86_64-pc-windows-msvc.zip'
+          $url = "https://github.com/esp-rs/espflash/releases/download/v$version/$asset"
+          $workDir = Join-Path $env:RUNNER_TEMP 'espflash'
+          $zipPath = Join-Path $workDir $asset
+          $extractDir = Join-Path $workDir 'extract'
+          $destDir = Join-Path $PWD '.codex_temp/cargo-root/bin'
+          New-Item -ItemType Directory -Force -Path $workDir, $extractDir, $destDir | Out-Null
+          Invoke-WebRequest -Uri $url -OutFile $zipPath
+          Expand-Archive -LiteralPath $zipPath -DestinationPath $extractDir -Force
+          $exe = Get-ChildItem -Path $extractDir -Filter 'espflash.exe' -Recurse | Select-Object -First 1
+          if (-not $exe) {
+            throw "espflash.exe not found in $asset"
+          }
+          Copy-Item -LiteralPath $exe.FullName -Destination (Join-Path $destDir 'espflash.exe') -Force
+
       - name: Configure CMake
         run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64
 
